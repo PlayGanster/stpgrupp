@@ -1,0 +1,116 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+@import "tailwindcss";
+
+@layer utilities {
+  .scrollbar-custom {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+  
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 10px 0;
+  }
+  
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  
+  .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  
+  /* Для Firefox */
+  @supports (scrollbar-color: auto) {
+    .scrollbar-custom {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    }
+  }
+}
+
+:root {
+  --blue-color: #00AAFF;
+  --green-color: #02D15C;
+  --green-text-color: #00C257;
+  --grey-color: #F2F1F0;
+  --grey-text-color: #757575;
+  --grey-bg-header-color: #292929;
+  --orange-hover-color: #FF6163;
+}
+
+.no-scroll {
+  overflow: hidden!important;
+}
+
+:root {
+  --bg-grey-color: #292929;
+  --href-hover-color: #FF6163;
+}
+
+:root {
+  --size-lg-heading-text: 32px;
+  --size-lg-banner-text: 52px;
+  --size-lg-default-text: 16px;
+  --size-lg-large-text: 24px;
+  --size-lg-small-text: 14px;
+  --size-md-heading-text: 24px;
+  --size-md-banner-text: 42px;
+  --size-md-default-text: 14px;
+  --size-md-large-text: 20px;
+  --size-md-small-text: 12px;
+  --size-mobile-heading-text: 18px;
+  --size-mobile-banner-text: 24px;
+  --size-mobile-default-text: 12px;
+  --size-mobile-large-text: 16px;
+  --size-mobile-small-text: 10px;
+}
+
+* {
+  font-family: "Manrope", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+body, html {
+  overflow-x: hidden!important;
+}
+
+.button-default {
+  border-radius: 12px;
+  color: white;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  justify-content: center;
+  gap: 6px;
+  transition: 0.2s background;
+  line-height: 1;
+}
+
+.wrapper {
+  width: dvw;
+  display: flex;
+  justify-content: center;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.categories::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+}
+
+.container {
+  max-width: 1340px;
+  width: 100%;
+}
