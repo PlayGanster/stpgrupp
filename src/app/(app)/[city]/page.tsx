@@ -12,25 +12,26 @@ import NewsSmallList from "@/features/news/NewsSmallList";
 import CatalogList from "@/features/catalog/list/CatalogList";
 import ReelsList from "@/features/news/ReelsList";
 import { CITY_CASES, CitySlug, DEFAULT_CITY, isSupportedCity } from '@/config/cities';
+import { 
+  getCityInPrepositionalCase, 
+  getCityInGenitiveCase, 
+  getCityInDativeCase, 
+  getCityWithPrepositionV,
+  getSeoCityTitle,
+  getSeoCityDescription 
+} from '@/shared/utils/cityCases';
 
 // Генерируем метаданные с учетом города
 export async function generateMetadata({ params }: { params: { city?: string } }) {
   const citySlug: CitySlug = params.city && isSupportedCity(params.city) ? params.city : DEFAULT_CITY;
-  const city = CITY_CASES[citySlug];
-
-  // Используем нужные падежи для SEO
-  // Например, для заголовка — дательный падеж (в Москве), для описания — родительный (аренда в Москве)
-  const cityDative = city.dative; // для "в Москве"
-  const cityGenitive = city.genitive; // для "аренда техники Москвы"
-  const cityNominative = city.nominative; // для названия города без предлога
-
+  
   return {
-    title: `СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${cityDative}` : ''} | Аренда спецтехники для строительства и грузоперевозок`,
-    description: `СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${cityDative}` : ''} — аренда спецтехники: экскаваторы, погрузчики, краны и другая строительная техника. Выгодные условия, оперативная доставка, профессиональные машинисты.`,
-    keywords: `аренда спецтехники ${cityGenitive}, строительная техника ${cityGenitive}, аренда экскаватора ${cityGenitive}, аренда погрузчика ${cityGenitive}, грузоперевозки ${cityGenitive}, строительная техника в аренду ${cityGenitive}`,
+    title: `СТП Групп ${getSeoCityTitle(citySlug)} | Аренда спецтехники для строительства и грузоперевозок`,
+    description: `СТП Групп ${getSeoCityDescription(citySlug)} — аренда спецтехники: экскаваторы, погрузчики, краны и другая строительная техника. Выгодные условия, оперативная доставка, профессиональные машинисты.`,
+    keywords: `аренда спецтехники ${getCityInGenitiveCase(citySlug)}, строительная техника ${getCityInGenitiveCase(citySlug)}, аренда экскаватора ${getCityInGenitiveCase(citySlug)}, аренда погрузчика ${getCityInGenitiveCase(citySlug)}, грузоперевозки ${getCityInGenitiveCase(citySlug)}, строительная техника в аренду ${getCityInGenitiveCase(citySlug)}`,
     openGraph: {
-      title: `СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${cityDative}` : ''} | Аренда спецтехники`,
-      description: `Аренда спецтехники для строительства и грузоперевозок ${citySlug !== DEFAULT_CITY ? `в ${cityPrepositional(citySlug)}` : 'по всей России'} по лучшим ценам`,
+      title: `СТП Групп ${getSeoCityTitle(citySlug)} | Аренда спецтехники`,
+      description: `Аренда спецтехники для строительства и грузоперевозок ${getCityWithPrepositionV(citySlug)} по лучшим ценам`,
       type: "website",
       locale: "ru_RU",
       // images: [
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: { params: { city?: string } }
       //     url: 'https://xn----ftb8acaedin.xn--p1ai/og-image.jpg',
       //     width: 1200,
       //     height: 630,
-      //     alt: `Аренда спецтехники ${citySlug !== DEFAULT_CITY ? `в ${cityDative}` : ''} - СТП Групп`,
+      //     alt: `Аренда спецтехники ${getSeoCityTitle(citySlug)} - СТП Групп`,
       //   },
       // ],
     },
@@ -70,29 +71,18 @@ export async function generateMetadata({ params }: { params: { city?: string } }
   };
 }
 
-// Вспомогательная функция для предлога в openGraph description
-function cityPrepositional(citySlug: CitySlug): string {
-  return CITY_CASES[citySlug].prepositional.toLowerCase();
-}
-
-
-// Функция для получения отображаемого имени города
-function getCityData(citySlug: string): typeof CITY_CASES[CitySlug] {
-  if (CITY_CASES[citySlug as CitySlug]) {
-    return CITY_CASES[citySlug as CitySlug];
-  }
-  return CITY_CASES[DEFAULT_CITY];
-}
-
 export default function Home({ params }: { params: { city?: string } }) {
   const citySlug: CitySlug = params.city && isSupportedCity(params.city) ? params.city : DEFAULT_CITY;
-  const city = CITY_CASES[citySlug];
-  // Для заголовков используем дательный падеж (в Москве)
-  const cityDative = city.dative;
-  // Для адреса в JSON-LD используем именительный или родительный, например, именительный
-  const cityNominative = city.nominative;
+  const cityDative = getCityInDativeCase(citySlug);
+  const cityPrepositional = getCityInPrepositionalCase(citySlug);
+  const cityNominative = CITY_CASES[citySlug].nominative;
   
-return (
+  const renderBannerCity = () => {
+    if(cityPrepositional === "России") return "по России"
+    return cityPrepositional
+  }
+
+  return (
     <>
       {/* JSON-LD структурированные данные */}
       <script
@@ -101,7 +91,7 @@ return (
           __html: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "Organization",
-            "name": `СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${cityDative}` : ''}`,
+            "name": `СТП Групп ${getSeoCityTitle(citySlug)}`,
             "description": "Аренда спецтехники для строительства и грузоперевозок",
             "url": `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}`,
             "logo": "https://ваш-сайт.ru/logo.png",
@@ -112,7 +102,7 @@ return (
             },
             "contactPoint": {
               "@type": "ContactPoint",
-              "telephone": "+7-XXX-XXX-XX-XX",
+              "telephone": "+7-930-333-40-46",
               "contactType": "customer service",
               "areaServed": "RU",
               "availableLanguage": "Russian"
@@ -125,31 +115,13 @@ return (
         }}
       />
       
-  {/* BreadcrumbList */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "BreadcrumbList",
-            "itemListElement": [
-              {
-                "@type": "ListItem",
-                "position": 1,
-                "name": "Главная",
-                "item": `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}`
-              }
-            ]
-          })
-        }}
-      />
       
       <div className="wrapper">
         <div className="container relative mb-[20px]">
           
           {/* Главный заголовок H1 - теперь видимый, а не скрытый */}
           <h1 className="lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)] font-black mb-6 sr-only">
-            Аренда спецтехники в {cityDative} для строительства и грузоперевозок
+            Аренда спецтехники {cityPrepositional} для строительства и грузоперевозок
           </h1>
           
           <CategoriesList />
@@ -166,10 +138,10 @@ return (
                 
                 {/* H3 для подзаголовка */}
                 <h3 className="lg:text-[length:var(--size-lg-large-text)] md:text-[length:var(--size-md-large-text)] text-[length:var(--size-mobile-large-text)] break-words mt-[12px] hidden md:flex">
-                  Аренда спецтехники в {cityDative} по лучшим ценам
+                  Аренда спецтехники {renderBannerCity()} по лучшим ценам
                 </h3>
                 <h3 className="lg:text-[length:var(--size-lg-large-text)] md:text-[length:var(--size-md-large-text)] text-[length:var(--size-md-default-text)] break-words mt-[12px] leading-[1.2] md:hidden flex">
-                  Аренда спецтехники<br/>в {cityDative} по лучшим ценам
+                  Аренда спецтехники<br/>{renderBannerCity()} по лучшим ценам
                 </h3>
               </div>
               
@@ -196,7 +168,7 @@ return (
               <Image 
                 className="lg:h-[490px] md:h-[240px] h-[360px] min-w-[520px] md:min-w-[420px] lg:min-w-[680px] w-auto absolute right-[-40px] bottom-[-120px] md:bottom-[-225px] lg:bottom-[-310px] z-0 lg:flex hidden" 
                 src={Banner2} 
-                alt={`Аренда экскаваторов и погрузчиков в ${cityDative} - СТП Групп`} 
+                alt={`Аренда экскаваторов и погрузчиков ${cityPrepositional} - СТП Групп`} 
                 priority
                 width={680}
                 height={490}
@@ -204,7 +176,7 @@ return (
               <Image 
                 className="lg:h-[480px] md:h-[360px] h-[360px] min-w-[360px] md:min-w-[360px] lg:min-w-[480px] w-auto absolute right-[-130px] bottom-[-35px] md:bottom-[-169.5px] lg:right-[-150px] lg:bottom-[-223.5px] z-0" 
                 src={Banner1} 
-                alt={`Аренда строительной техники для грузоперевозок в ${cityDative}`} 
+                alt={`Аренда строительной техники для грузоперевозок ${cityPrepositional}`} 
                 priority
                 width={480}
                 height={480}
@@ -224,7 +196,7 @@ return (
 
           {/* Секция "Наши работы" */}
           <section aria-label="Наши работы" className="w-full mt-[20px]">
-            <h2 className="font-black lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)]">Наши работы в {cityDative}</h2>
+            <h2 className="font-black lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)]">Наши работы {cityPrepositional}</h2>
             <ReelsList />
           </section>
 
@@ -236,7 +208,7 @@ return (
 
           {/* Секция "Каталог" */}
           <section aria-label="Каталог техники" className="w-full mt-[20px]">
-            <h2 className="font-black lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)]">Каталог техники в {cityDative}</h2>
+            <h2 className="font-black lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)]">Каталог техники {cityPrepositional}</h2>
             <CatalogList all={false} />
           </section>
 

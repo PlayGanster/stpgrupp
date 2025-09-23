@@ -3,8 +3,14 @@ import TopBlockProduct from "@/features/product/top-block/TopBlockProduct";
 import RightItem from "@/features/product/right-item/rightItem";
 import { Metadata } from "next";
 import { getProduct } from "@/actions/products";
-import { API_BASE_URL } from "@/constant/api-url";
+import { API_BASE_URL, SITE_URL } from "@/constant/api-url";
 import { CITY_CASES, CitySlug, DEFAULT_CITY, isSupportedCity } from '@/config/cities';
+import { 
+  getCityInGenitiveCase, 
+  getCityInDativeCase,
+  getSeoCityTitle,
+  getSeoCityDescription,
+} from '@/shared/utils/cityCases';
 
 interface PageProps {
   params: { 
@@ -15,9 +21,12 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const citySlug: CitySlug = params.city && isSupportedCity(params.city) ? params.city : DEFAULT_CITY;
-  const city = CITY_CASES[citySlug];
-  const cityGenitive = city.genitive;
-  const cityPrepositional = city.dative;
+  const isDefaultCity = citySlug === DEFAULT_CITY;
+  
+  const cityGenitive = getCityInGenitiveCase(citySlug);
+  const cityDative = getCityInDativeCase(citySlug);
+  const seoCityTitle = getSeoCityTitle(citySlug);
+  const seoCityDescription = getSeoCityDescription(citySlug);
 
   try {
     // Получаем данные товара
@@ -32,13 +41,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
     // Формируем метаданные на основе данных товара
     return {
-      title: `${product.name} - аренда в ${cityPrepositional} | Цена ${product.price} ₽ в час | СТП Групп`,
-      description: `Аренда ${product.name.toLowerCase()} в ${cityPrepositional} от ${product.price} ₽ в час. ${truncateText(product.description, 120)} Заказать спецтехнику с доставкой.`,
+      title: `${product.name} - аренда ${seoCityTitle} | Цена ${product.price} ₽ в час | СТП Групп`,
+      description: `Аренда ${product.name.toLowerCase()} ${seoCityDescription} от ${product.price} ₽ в час. ${truncateText(product.description, 120)} Заказать спецтехнику с доставкой.`,
       keywords: `аренда ${product.name.toLowerCase()} ${cityGenitive}, ${product.name.toLowerCase()} напрокат ${cityGenitive}, цена аренды ${product.name.toLowerCase()} ${cityGenitive}, СТП Групп ${cityGenitive}`,
       openGraph: {
-        title: `${product.name} - аренда в ${cityPrepositional} | СТП Групп`,
-        description: `Аренда ${product.name.toLowerCase()} в ${cityPrepositional} от ${product.price} ₽ в час. ${truncateText(product.description, 100)}`,
-        type: "website", // Используем "website" вместо "product"
+        title: `${product.name} - аренда ${seoCityTitle} | СТП Групп`,
+        description: `Аренда ${product.name.toLowerCase()} ${seoCityDescription} от ${product.price} ₽ в час. ${truncateText(product.description, 100)}`,
+        type: "website",
         locale: "ru_RU",
         images: [
           {
@@ -51,8 +60,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       },
       twitter: {
         card: "summary_large_image",
-        title: `${product.name} - аренда в ${cityPrepositional}`,
-        description: `Аренда ${product.name.toLowerCase()} в ${cityPrepositional} от ${product.price} ₽ в час. ${truncateText(product.description, 100)}`,
+        title: `${product.name} - аренда ${seoCityTitle}`,
+        description: `Аренда ${product.name.toLowerCase()} ${seoCityDescription} от ${product.price} ₽ в час. ${truncateText(product.description, 100)}`,
         images: [`${API_BASE_URL}/uploads/products/${getMainImage(product.images)}`],
       },
       robots: {
@@ -60,7 +69,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         follow: true,
       },
       alternates: {
-        canonical: `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}/catalog/${params.id}`,
+        canonical: `${SITE_URL}/${!isDefaultCity ? citySlug : ''}/catalog/${params.id}`,
       },
     };
   } catch (error) {
@@ -68,8 +77,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     
     // Fallback метаданные
     return {
-      title: `Аренда спецтехники ${citySlug !== DEFAULT_CITY ? `в ${cityPrepositional}` : ''} | СТП Групп`,
-      description: `Аренда строительной и специальной техники ${citySlug !== DEFAULT_CITY ? `в ${cityPrepositional}` : ''} по выгодным ценам. Большой парк техники, доставка, опытные операторы.`,
+      title: `Аренда спецтехники ${seoCityTitle} | СТП Групп`,
+      description: `Аренда строительной и специальной техники ${seoCityDescription} по выгодным ценам. Большой парк техники, доставка, опытные операторы.`,
     };
   }
 }
@@ -92,7 +101,9 @@ function getMainImage(imagesString: string): string {
 
 export default async function ProductPage({ params }: PageProps) {
   const citySlug: CitySlug = params.city && isSupportedCity(params.city) ? params.city : DEFAULT_CITY;
-  const city = CITY_CASES[citySlug];
+  const isDefaultCity = citySlug === DEFAULT_CITY;
+  
+  const seoCityTitle = getSeoCityTitle(citySlug);
 
   let product = null;
   try {
@@ -113,7 +124,7 @@ export default async function ProductPage({ params }: PageProps) {
       "price": product.price,
       "priceCurrency": "RUB",
       "availability": "https://schema.org/InStock",
-      "areaServed": city.accusative
+      "areaServed": seoCityTitle
     },
     "brand": {
       "@type": "Brand",
@@ -132,36 +143,6 @@ export default async function ProductPage({ params }: PageProps) {
           />
         )}
         
-        {/* BreadcrumbList для навигации */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BreadcrumbList",
-              "itemListElement": [
-                {
-                  "@type": "ListItem",
-                  "position": 1,
-                  "name": "Главная",
-                  "item": `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}`
-                },
-                {
-                  "@type": "ListItem",
-                  "position": 2,
-                  "name": "Каталог техники",
-                  "item": `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}/catalog`
-                },
-                {
-                  "@type": "ListItem",
-                  "position": 3,
-                  "name": product ? product.name : "Товар",
-                  "item": `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}/catalog/${params.id}`
-                }
-              ]
-            })
-          }}
-        />
 
         <TopBlockProduct />
         <div className="flex md:gap-[40px] md:flex-row flex-col-reverse">

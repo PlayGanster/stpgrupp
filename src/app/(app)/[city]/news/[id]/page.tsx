@@ -1,8 +1,14 @@
 import NewsContent from "@/features/news/NewsContent";
 import { Metadata } from "next";
 import { getNews } from "@/actions/news";
-import { API_BASE_URL } from "@/constant/api-url";
+import { API_BASE_URL, SITE_URL } from "@/constant/api-url";
 import { CITY_CASES, CitySlug, DEFAULT_CITY, isSupportedCity } from '@/config/cities';
+import { 
+  getCityInPrepositionalCase, 
+  getCityInGenitiveCase, 
+  getSeoCityTitle,
+  getSeoCityDescription
+} from '@/shared/utils/cityCases';
 
 interface PageProps {
   params: { 
@@ -11,11 +17,21 @@ interface PageProps {
   };
 }
 
+// Вспомогательная функция для обрезки текста
+function truncateText(text: string, maxLength: number): string {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.substr(0, text.lastIndexOf(' ', maxLength)) + '...';
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const citySlug: CitySlug = params.city && isSupportedCity(params.city) ? params.city : DEFAULT_CITY;
-  const city = CITY_CASES[citySlug];
-  const cityGenitive = city.genitive;
-  const cityPrepositional = city.dative;
+  const isDefaultCity = citySlug === DEFAULT_CITY;
+
+  const cityPrepositional = getCityInPrepositionalCase(citySlug);
+  const cityGenitive = getCityInGenitiveCase(citySlug);
+  const seoCityTitle = getSeoCityTitle(citySlug);
+  const seoCityDescription = getSeoCityDescription(citySlug);
 
   try {
     // Получаем данные новости
@@ -23,43 +39,57 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     
     if (!news) {
       return {
-        title: `Новость не найдена | Аренда спецтехники – СТП Групп`,
-        description: `Запрошенная новость не существует или была удалена.`,
+        title: `Новость не найдена | Аренда спецтехники ${cityPrepositional} – СТП Групп`,
+        description: `Запрошенная новость не существует или была удалена. Аренда спецтехники ${cityPrepositional} от компании СТП Групп.`,
       };
     }
 
     // Формируем метаданные на основе данных новости
+    const title = `${news.name} | Новости компании СТП Групп ${seoCityTitle ? `${seoCityTitle}` : ''}`;
+    const description = truncateText(news.description, 160);
+    const canonicalUrl = `${SITE_URL}/${!isDefaultCity ? citySlug : ''}/news/${params.id}`;
+    const imageUrl = `${API_BASE_URL}/uploads/newss/${news.image}`;
+
     return {
-      title: `${news.name} | Новости компании СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${cityPrepositional}` : ''}`,
-      description: truncateText(news.description, 160),
-      keywords: `${news.name}, новости аренда спецтехники ${cityGenitive}, СТП Групп ${cityGenitive}`,
+      title,
+      description,
+      keywords: `${news.name}, новости аренда спецтехники ${cityGenitive}, СТП Групп ${cityGenitive}, строительная техника ${cityGenitive}`,
       openGraph: {
-        title: news.name,
-        description: truncateText(news.description, 160),
+        title,
+        description,
         type: "article",
         locale: "ru_RU",
+        url: canonicalUrl,
         images: [
           {
-            url: `${API_BASE_URL}/uploads/newss/${news.image}`,
+            url: imageUrl,
             width: 800,
             height: 600,
             alt: news.name,
           },
         ],
         publishedTime: news.created_at ? new Date(news.created_at).toISOString() : undefined,
+        siteName: "СТП Групп",
       },
       twitter: {
         card: "summary_large_image",
-        title: news.name,
-        description: truncateText(news.description, 160),
-        images: [`${API_BASE_URL}/uploads/newss/${news.image}`],
+        title,
+        description,
+        images: [imageUrl],
       },
       robots: {
         index: true,
         follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          'max-video-preview': -1,
+          'max-image-preview': 'large',
+          'max-snippet': -1,
+        },
       },
       alternates: {
-        canonical: `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}/news/${params.id}`,
+        canonical: canonicalUrl,
       },
     };
   } catch (error) {
@@ -67,22 +97,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     
     // Fallback метаданные
     return {
-      title: `Новости компании | Аренда спецтехники – СТП Групп`,
-      description: `Актуальные новости и события компании СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${cityPrepositional}` : ''}`,
+      title: `Новости компании | Аренда спецтехники ${cityPrepositional} – СТП Групп`,
+      description: `Актуальные новости и события компании СТП Групп ${!isDefaultCity ? seoCityDescription : ''}. Аренда спецтехники с доставкой.`,
     };
   }
 }
 
-// Вспомогательная функция для обрезки текста
-function truncateText(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.substr(0, text.lastIndexOf(' ', maxLength)) + '...';
-}
-
 export default async function NewsDetailPage({ params }: PageProps) {
   const citySlug: CitySlug = params.city && isSupportedCity(params.city) ? params.city : DEFAULT_CITY;
-  const city = CITY_CASES[citySlug];
-  const cityDative = city.dative;
+  const isDefaultCity = citySlug === DEFAULT_CITY;
 
   let news = null;
   try {
@@ -99,18 +122,23 @@ export default async function NewsDetailPage({ params }: PageProps) {
     "description": truncateText(news.description, 200),
     "image": `${API_BASE_URL}/uploads/newss/${news.image}`,
     "datePublished": news.created_at ? new Date(news.created_at).toISOString() : new Date().toISOString(),
-    "dateModified": news.created_at ? new Date(news.created_at).toISOString() : new Date().toISOString(),
+    "dateModified": news.created_at ? new Date(news.created_at).toISOString() : (news.created_at ? new Date(news.created_at).toISOString() : new Date().toISOString()),
     "author": {
       "@type": "Organization",
-      "name": "СТП Групп"
+      "name": "СТП Групп",
+      "url": SITE_URL
     },
     "publisher": {
       "@type": "Organization",
       "name": "СТП Групп",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://ваш-сайт.ru/logo.png"
+        "url": `${SITE_URL}/logo.png`
       }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": `${SITE_URL}/${!isDefaultCity ? citySlug : ''}/news/${params.id}`
     }
   } : null;
 
@@ -125,36 +153,6 @@ export default async function NewsDetailPage({ params }: PageProps) {
           />
         )}
         
-        {/* BreadcrumbList для навигации */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "BreadcrumbList",
-              "itemListElement": [
-                {
-                  "@type": "ListItem",
-                  "position": 1,
-                  "name": "Главная",
-                  "item": `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}`
-                },
-                {
-                  "@type": "ListItem",
-                  "position": 2,
-                  "name": "Новости",
-                  "item": `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}/news`
-                },
-                {
-                  "@type": "ListItem",
-                  "position": 3,
-                  "name": news ? news.name : "Новость",
-                  "item": `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}/news/${params.id}`
-                }
-              ]
-            })
-          }}
-        />
 
         <NewsContent />
       </div>

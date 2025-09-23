@@ -1,33 +1,43 @@
 import { Metadata } from "next";
 import ContactsMap from "@/features/contacts/map/ContactsMap";
 import { CITY_CASES, CitySlug, DEFAULT_CITY, isSupportedCity } from '@/config/cities';
+import { SITE_URL } from "@/constant/api-url";
+import { 
+  getCityInPrepositionalCase, 
+  getCityInGenitiveCase, 
+  getCityInDativeCase,
+  getSeoCityTitle,
+  getSeoCityDescription,
+} from '@/shared/utils/cityCases';
 
 // Генерируем метаданные с учетом города
 export async function generateMetadata({ params }: { params: { city?: string } }): Promise<Metadata> {
   const citySlug: CitySlug = params.city && isSupportedCity(params.city) ? params.city : DEFAULT_CITY;
-  const city = CITY_CASES[citySlug];
+  const isDefaultCity = citySlug === DEFAULT_CITY;
 
-  const cityDative = city.dative;
-  const cityGenitive = city.genitive;
-  const cityPrepositional = city.prepositional;
+  const cityPrepositional = getCityInPrepositionalCase(citySlug);
+  const cityGenitive = getCityInGenitiveCase(citySlug);
+  const cityDative = getCityInDativeCase(citySlug);
+  const seoCityTitle = getSeoCityTitle(citySlug);
+  const seoCityDescription = getSeoCityDescription(citySlug);
 
   return {
-    title: `Контакты СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${cityDative}` : ''} | Аренда спецтехники – телефон, адрес, реквизиты`,
-    description: `Контактная информация СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${cityPrepositional}` : ''}. Телефон, адрес, график работы. Закажите аренду спецтехники с быстрой доставкой ${citySlug !== DEFAULT_CITY ? `в ${cityDative}` : ''}.`,
+    title: `Контакты СТП Групп ${seoCityTitle} | Аренда спецтехники – телефон, адрес, реквизиты`,
+    description: `Контактная информация СТП Групп ${seoCityDescription}. Телефон, адрес, график работы. Закажите аренду спецтехники с быстрой доставкой ${!isDefaultCity ? seoCityDescription : ''}.`,
     keywords: `контакты СТП Групп ${cityGenitive}, аренда спецтехники ${cityGenitive} телефон, адрес компании спецтехники ${cityGenitive}, заказать аренду техники ${cityGenitive}`,
     openGraph: {
-      title: `Контакты СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${cityDative}` : ''}`,
-      description: `Контактная информация для заказа аренды спецтехники ${citySlug !== DEFAULT_CITY ? `в ${cityPrepositional}` : ''}. Телефон, адрес, график работы.`,
+      title: `Контакты СТП Групп ${seoCityTitle}`,
+      description: `Контактная информация для заказа аренды спецтехники ${seoCityDescription}. Телефон, адрес, график работы.`,
       type: "website",
       locale: "ru_RU",
-      images: [
-        {
-          url: 'https://ваш-сайт.ru/og-contacts.jpg',
-          width: 1200,
-          height: 630,
-          alt: `Контакты СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${cityDative}` : ''}`,
-        },
-      ],
+      // images: [
+      //   {
+      //     url: 'https://ваш-сайт.ru/og-contacts.jpg',
+      //     width: 1200,
+      //     height: 630,
+      //     alt: `Контакты СТП Групп ${seoCityTitle}`,
+      //   },
+      // ],
     },
     robots: {
       index: true,
@@ -41,14 +51,12 @@ export async function generateMetadata({ params }: { params: { city?: string } }
       },
     },
     alternates: {
-      canonical: `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}/contacts`,
+      canonical: `${SITE_URL}/${!isDefaultCity ? citySlug : ''}/contacts`,
     },
   };
 }
 
 const getCityContacts = (citySlug: CitySlug) => {
-  const city = CITY_CASES[citySlug];
-  
   // Здесь можно получать контакты для конкретного города из API/базы
   // Пока заглушка с возможностью расширения под разные города
   const contactsByCity: Partial<Record<CitySlug, any>> = {
@@ -67,8 +75,14 @@ const getCityContacts = (citySlug: CitySlug) => {
 
 export default function ContactsPage({ params }: { params: { city?: string } }) {
   const citySlug: CitySlug = params.city && isSupportedCity(params.city) ? params.city : DEFAULT_CITY;
-  const city = CITY_CASES[citySlug];
+  const isDefaultCity = citySlug === DEFAULT_CITY;
   
+  const cityPrepositional = getCityInPrepositionalCase(citySlug);
+  const cityDative = getCityInDativeCase(citySlug);
+  const cityGenitive = getCityInGenitiveCase(citySlug);
+  const cityNominative = CITY_CASES[citySlug]?.nominative || cityDative;
+  const seoCityTitle = getSeoCityTitle(citySlug);
+
   const contactInfo = {
     ...getCityContacts(citySlug),
     company: {
@@ -96,14 +110,14 @@ export default function ContactsPage({ params }: { params: { city?: string } }) 
   const organizationStructuredData = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": `СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${city.dative}` : ''}`,
+    "name": `СТП Групп ${seoCityTitle}`,
     "description": "Аренда спецтехники для строительства и грузоперевозок",
-    "url": `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}`,
-    "logo": "https://ваш-сайт.ru/logo.png",
+    "url": `${SITE_URL}/${!isDefaultCity ? citySlug : ''}`,
+    "logo": `${SITE_URL}/logo.png`,
     "address": {
       "@type": "PostalAddress",
       "streetAddress": contactInfo.address,
-      "addressLocality": citySlug !== DEFAULT_CITY ? city.nominative : "Курганская область",
+      "addressLocality": !isDefaultCity ? cityNominative : "Курганская область",
       "addressCountry": "RU"
     },
     "contactPoint": {
@@ -127,19 +141,19 @@ export default function ContactsPage({ params }: { params: { city?: string } }) 
   const localBusinessStructuredData = {
     "@context": "https://schema.org",
     "@type": "LocalBusiness",
-    "name": `СТП Групп ${citySlug !== DEFAULT_CITY ? `в ${city.dative}` : ''}`,
+    "name": `СТП Групп ${seoCityTitle}`,
     "description": "Аренда строительной техники и спецтранспорта",
-    "url": `https://ваш-сайт.ru/${citySlug !== DEFAULT_CITY ? citySlug : ''}`,
+    "url": `${SITE_URL}/${!isDefaultCity ? citySlug : ''}`,
     "telephone": contactInfo.phone,
     "address": {
       "@type": "PostalAddress",
       "streetAddress": contactInfo.address,
-      "addressLocality": citySlug !== DEFAULT_CITY ? city.nominative : "Курганская область",
+      "addressLocality": !isDefaultCity ? cityNominative : "Курганская область",
       "addressCountry": "RU"
     },
     "openingHours": contactInfo.workHours,
     "priceRange": "$$",
-    "areaServed": citySlug !== DEFAULT_CITY ? city.nominative : "Россия"
+    "areaServed": !isDefaultCity ? cityNominative : "Россия"
   };
 
   return (
@@ -156,7 +170,7 @@ export default function ContactsPage({ params }: { params: { city?: string } }) 
         />
 
         <h1 className="mt-[20px] text-[length:var(--size-mobile-heading-text)] md:text-[length:var(--size-md-heading-text)] lg:text-[length:var(--size-lg-heading-text)] font-black">
-          Контакты {citySlug !== DEFAULT_CITY ? `в ${city.dative}` : ''}
+          Контакты {seoCityTitle}
         </h1>
         
         <section className="mt-8" itemScope itemType="https://schema.org/ContactPoint">
