@@ -14,6 +14,7 @@ import { CITY_CASES, isSupportedCity } from '@/config/cities';
 import { useCity } from '@/hooks/useCity';
 import Modal from '@/shared/ui/modal/Modal';
 import ContactForm from '@/features/form/ContactForm';
+import { useRouter } from 'next/navigation';
 
 const Header = () => {
   const [openBurger, setOpenBurger] = useState(false);
@@ -21,8 +22,35 @@ const Header = () => {
   const { slug, isCityVersion, currentPath } = useCity();
   const [openForm, setOpenForm] = useState(false);
   const [logoIsVisible, setLogoIsVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(''); // Состояние для поискового запроса
+  const router = useRouter();
 
   const handleOpen = () => setOpenBurger(!openBurger);
+
+  // Функция для обработки поиска
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return; // Не делаем ничего если запрос пустой
+    
+    // Создаем базовый URL для каталога с учетом города
+    let catalogUrl = '/catalog';
+    if (isCityVersion && slug) {
+      catalogUrl = `/${slug}/catalog`;
+    }
+    
+    // Добавляем поисковый параметр
+    const searchParams = new URLSearchParams();
+    searchParams.append('query_search', searchQuery.trim());
+    
+    // Перенаправляем на страницу каталога с поисковым запросом
+    router.push(`${catalogUrl}?${searchParams.toString()}`);
+  };
+
+  // Обработка нажатия Enter в поле поиска
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
 
   useEffect(() => {
     if (openBurger) {
@@ -54,27 +82,21 @@ const Header = () => {
       }
     };
 
-    // Добавляем слушатель события скролла
     window.addEventListener('scroll', handleScroll);
 
-    // Убираем слушатель при размонтировании компонента
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
   const getLink = (newCity: string) => {
-    // Получаем текущий путь без города
     let pathWithoutCity = currentPath;
     
     if (isCityVersion && currentPath.startsWith(`/${slug}`)) {
-      // Убираем город из начала пути
       pathWithoutCity = currentPath.slice(`/${slug}`.length);
-      // Если после удаления города путь пустой, ставим "/"
       if (pathWithoutCity === '') pathWithoutCity = '/';
     }
 
-    // Для новых городов
     if (newCity === 'all') {
       return pathWithoutCity;
     } else {
@@ -82,7 +104,6 @@ const Header = () => {
     }
   }
 
-  // Получаем отображаемое название текущего города
   const getCurrentCityName = () => {
     if (!isCityVersion) return 'Вся Россия';
     const cityData = CITY_CASES[slug as keyof typeof CITY_CASES];
@@ -147,7 +168,6 @@ const Header = () => {
      )
   }
 
-  // Функция для создания ссылок с учетом города
   const getMenuLink = (href: string) => {
     if (isCityVersion) {
       return `/${slug}${href}`;
@@ -216,10 +236,16 @@ const Header = () => {
           </Link>
           <div className="md:flex hidden lg:mt-[20px] lg:max-w-[1000px] max-w-[550px] w-full h-[35px] lg:h-[40px] justify-between rounded-[12px] bg-[var(--blue-color)]">
             <div className="w-full p-[2px] h-full">
-              <input placeholder="Поиск по технике" className="w-full bg-white outline-none p-[8px_15px] rounded-[10px_10px_8px_8px] h-full" />
+              <input 
+                placeholder="Поиск по технике" 
+                className="w-full bg-white outline-none p-[8px_15px] rounded-[10px_10px_8px_8px] h-full" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+              />
             </div>
-            <div className="lg:flex hidden"><Button name="Найти" height={40} size="default" /></div>
-            <div className="lg:hidden flex"><Button name="Найти" height={35} size="default" /></div>
+            <div className="lg:flex hidden"><Button name="Найти" height={40} size="default" onClick={handleSearch} /></div>
+            <div className="lg:hidden flex"><Button name="Найти" height={35} size="default" onClick={handleSearch} /></div>
           </div>
           <div className="flex lg:mt-[20px] hover:text-[var(--href-hover-color)] underline cursor-pointer text-[14px] lg:text-[18px] items-center gap-[6px]" onClick={() => setOpenCity(!openCity)}>
             <div className="lg:flex hidden"><BsGeoAlt size={18} /></div>
@@ -232,10 +258,16 @@ const Header = () => {
         <div className="container md:hidden flex w-full min-h-[35px]">
           <div className="md:hidden mt-[10px] flex w-full h-[35px] lg:h-[45px] justify-between rounded-[12px] bg-[var(--blue-color)]">
             <div className="w-full p-[2px] h-full">
-              <input placeholder="Поиск по технике" className="w-full text-[14px] bg-white outline-none p-[8px_15px] rounded-[10px_10px_8px_8px] h-full" />
+              <input 
+                placeholder="Поиск по технике" 
+                className="w-full text-[14px] bg-white outline-none p-[8px_15px] rounded-[10px_10px_8px_8px] h-full" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyPress={handleKeyPress}
+              />
             </div>
-            <div className="lg:flex hidden"><Button name="Найти" height={45} size="default" /></div>
-            <div className="lg:hidden flex"><Button name="Найти" height={35} size="default" /></div>
+            <div className="lg:flex hidden"><Button name="Найти" height={45} size="default" onClick={handleSearch} /></div>
+            <div className="lg:hidden flex"><Button name="Найти" height={35} size="default" onClick={handleSearch} /></div>
           </div>
         </div>
       </div>

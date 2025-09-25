@@ -45,6 +45,7 @@ const CategoriesList = ({ initialCategories = [] }: CategoriesListProps) => {
   const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [loading, setLoading] = useState(!initialCategories.length);
   const [error, setError] = useState<string | null>(null);
+  const [showScrollButtons, setShowScrollButtons] = useState(false);
   const { slug, isCityVersion } = useCity();
 
   const getHrefWithCity = (href: string) => {
@@ -106,6 +107,29 @@ const CategoriesList = ({ initialCategories = [] }: CategoriesListProps) => {
     }
   }, [initialCategories.length, fetchCategories]);
 
+  // Функция для проверки необходимости показа стрелок
+  const checkScrollButtons = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Проверяем, есть ли переполнение по горизонтали
+    const hasHorizontalScroll = container.scrollWidth > container.clientWidth;
+    setShowScrollButtons(hasHorizontalScroll);
+  }, []);
+
+  useEffect(() => {
+    // Проверяем при загрузке категорий
+    checkScrollButtons();
+
+    // Также проверяем при изменении размера окна
+    const handleResize = () => {
+      checkScrollButtons();
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [categories, checkScrollButtons]); // Зависимость от categories - проверяем при изменении количества категорий
+
   const scrollLeft = useCallback(() => {
     scrollContainerRef.current?.scrollBy({ left: -200, behavior: 'smooth' });
   }, []);
@@ -166,29 +190,34 @@ const CategoriesList = ({ initialCategories = [] }: CategoriesListProps) => {
       <h2 className="mt-5 text-lg md:text-xl lg:text-2xl font-black">Категории спецтехники</h2>
       
       <div className="relative mt-3">
-        <button 
-          onClick={scrollLeft}
-          className="absolute left-[-12px] top-1/2 -translate-y-1/2 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label="Прокрутить влево"
-          type="button"
-        >
-          &lt;
-        </button>
-        
-        <button 
-          onClick={scrollRight}
-          className="absolute right-[-12px] top-1/2 -translate-y-1/2 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label="Прокрутить вправо"
-          type="button"
-        >
-          &gt;
-        </button>
+        {showScrollButtons && (
+          <>
+            <button 
+              onClick={scrollLeft}
+              className="absolute left-[-12px] top-1/2 -translate-y-1/2 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Прокрутить влево"
+              type="button"
+            >
+              &lt;
+            </button>
+            
+            <button 
+              onClick={scrollRight}
+              className="absolute right-[-12px] top-1/2 -translate-y-1/2 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="Прокрутить вправо"
+              type="button"
+            >
+              &gt;
+            </button>
+          </>
+        )}
         
         <div 
           ref={scrollContainerRef}
           className="w-full flex overflow-x-auto gap-2 scrollbar-hide py-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           role="list"
+          onScroll={checkScrollButtons} // Проверяем при прокрутке
         >
           {categories.map((category) => (
             <Link 

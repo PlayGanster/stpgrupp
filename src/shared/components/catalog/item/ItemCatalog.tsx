@@ -114,20 +114,30 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
       return getHrefWithCity(`/catalog/product/${idItem}`)
     }
 
-    // Получаем первые две характеристики для отображения
+    // Получаем характеристики для отображения (только те, у которых view_list = 1)
     const displaySpecs = useMemo(() => {
-      return specifications.slice(0, 2);
+      // Фильтруем характеристики с view_list = 1 и берем максимум 2
+      const specsToShow = specifications
+        .filter(spec => spec.view_list === 1)
+        .slice(0, 2);
+      
+      return specsToShow;
     }, [specifications]);
 
     // Генерация микроразметки для продукта
     const generateProductSchema = useCallback(() => {
       if (!idItem || !name || !price || view === "go") return null;
 
+      // Создаем описание с учетом характеристик
+      const specDescription = displaySpecs.length > 0 
+        ? displaySpecs.map(spec => `${spec.name}: ${spec.value}`).join(', ')
+        : '';
+
       return {
         "@context": "https://schema.org",
         "@type": "Product",
         "name": name,
-        "description": `${name} - доступен для аренды по цене от ${price} руб.`,
+        "description": `${name} - доступен для аренды по цене от ${price} руб. ${specDescription ? `Основные характеристики: ${specDescription}` : ''}`,
         "offers": {
           "@type": "Offer",
           "price": price,
@@ -137,7 +147,7 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
         },
         "url": getAbsoluteUrl(`/catalog/product/${idItem}`)
       };
-    }, [idItem, name, price, isCityVersion, slug]);
+    }, [idItem, name, price, displaySpecs, isCityVersion, slug]);
 
     const renderItem = () => {
         if(view === "go") return (
@@ -194,12 +204,12 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
                   </h3>
                 </Link>
                 
-                {/* Блок характеристик */}
+                {/* Блок характеристик - показываем только те, у которых view_list = 1 */}
                 {displaySpecs.length > 0 && (
-                  <div className="mt-1 mb-1">
-                    {displaySpecs.map((spec: any, index: any) => (
+                  <div className="mt-1 mb-1 space-y-1">
+                    {displaySpecs.map((spec, index) => (
                       <div 
-                        key={index} 
+                        key={spec.id || index} 
                         className="text-xs text-gray-600 line-clamp-1"
                         title={`${spec.name}: ${spec.value}`}
                       >
@@ -244,7 +254,11 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
                   )}
                 </div>
                 
-                <span className="flex absolute min-w-max right-0 bottom-0 gap-[4px] lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] max-[400px]:text-[length:10px] font-regular items-center"><span className="min-[401px]:hidden"><BsGeoAlt size={12} /></span><span className="max-[401px]:hidden"><BsGeoAlt size={16} /></span>  {getCityName()}</span>
+                <span className="flex absolute min-w-max right-0 bottom-0 gap-[4px] lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] max-[400px]:text-[length:10px] font-regular items-center">
+                  <span className="min-[401px]:hidden"><BsGeoAlt size={12} /></span>
+                  <span className="max-[401px]:hidden"><BsGeoAlt size={16} /></span>  
+                  {getCityName()}
+                </span>
               </div>
             </div>
             

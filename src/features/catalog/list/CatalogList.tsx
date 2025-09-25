@@ -4,7 +4,7 @@ import { Category, getCategories, getCategoriesProducts } from "@/actions/catego
 import { getProductsList, Product } from "@/actions/products";
 import ItemCatalog from "@/shared/components/catalog/item/ItemCatalog";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useCity } from '@/hooks/useCity';
 import Head from "next/head";
@@ -32,13 +32,31 @@ const CatalogList: React.FC<CatalogListType> = ({
 }) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
+    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
     const [loadingCategories, setLoadingCategories] = useState(true);
     const [loadingProducts, setLoadingProducts] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [itemsCount, setItemsCount] = useState(4);
+    
     const params = useParams();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
     const category_slug = params.category as string;
     const { slug, isCityVersion } = useCity();
+
+    // Проверяем, находимся ли мы на странице каталога
+    const isCatalogPage = useMemo(() => {
+        if (isCityVersion) {
+            return pathname === `/${slug}/catalog` || pathname.startsWith(`/${slug}/catalog/`);
+        }
+        return pathname === '/catalog' || pathname.startsWith('/catalog/');
+    }, [pathname, isCityVersion, slug]);
+
+    // Получаем поисковый запрос из URL параметров (только на странице каталога)
+    const searchQuery = useMemo(() => {
+        if (!isCatalogPage) return '';
+        return searchParams.get('query_search') || '';
+    }, [searchParams, isCatalogPage]);
 
     // Получаем текущую категорию для SEO
     const currentCategory = useMemo(() => {
@@ -52,6 +70,17 @@ const CatalogList: React.FC<CatalogListType> = ({
       }
       return href;
     }
+
+    // Функция для фильтрации продуктов по поисковому запросу
+    const filterProductsBySearch = useCallback((productsList: Product[], query: string) => {
+        if (!query.trim() || !isCatalogPage) return productsList;
+        
+        const lowerQuery = query.toLowerCase().trim();
+        return productsList.filter(product => 
+            product.name.toLowerCase().includes(lowerQuery) ||
+            (product.description && product.description.toLowerCase().includes(lowerQuery))
+        );
+    }, [isCatalogPage]);
 
     // Функция для получения данных из кеша
     const getCachedData = useCallback((): {data_category: Category[], data_products: Product[]} | null => {
@@ -118,16 +147,18 @@ const CatalogList: React.FC<CatalogListType> = ({
             if (cachedData) {
                 setCategories(cachedData.data_category);
                 
+                let productsToSet = cachedData.data_products;
+                
                 if (category_slug) {
                     const category = cachedData.data_category.find(el => el.slug === category_slug);
                     if (category) {
-                        const filteredProducts = cachedData.data_products.filter(el => el.category_id === category.id);
-                        setProducts(filteredProducts);
+                        productsToSet = cachedData.data_products.filter(el => el.category_id === category.id);
                     }
-                } else {
-                    setProducts(cachedData.data_products);
                 }
                 
+                setProducts(productsToSet);
+                // Применяем фильтрацию по поиску если есть запрос
+                setFilteredProducts(filterProductsBySearch(productsToSet, searchQuery));
                 return;
             }
 
@@ -159,15 +190,17 @@ const CatalogList: React.FC<CatalogListType> = ({
             setCategories(categoriesWithCounts);
             setCacheData(categoriesWithCounts, productsData);
 
+            let productsToSet = productsData;
             if (category_slug) {
                 const category = categoriesWithCounts.find(el => el.slug === category_slug);
                 if (category) {
-                    const filteredProducts = productsData.filter((el: any) => el.category_id === category.id);
-                    setProducts(filteredProducts);
+                    productsToSet = productsData.filter((el: any) => el.category_id === category.id);
                 }
-            } else {
-                setProducts(productsData);
             }
+
+            setProducts(productsToSet);
+            // Применяем фильтрацию по поиску если есть запрос
+            setFilteredProducts(filterProductsBySearch(productsToSet, searchQuery));
         } catch (err) {
             console.error('Error fetching data:', err);
             setError('Не удалось загрузить данные');
@@ -176,12 +209,13 @@ const CatalogList: React.FC<CatalogListType> = ({
             if (cachedData) {
                 setCategories(cachedData.data_category);
                 setProducts(cachedData.data_products);
+                setFilteredProducts(filterProductsBySearch(cachedData.data_products, searchQuery));
             }
         } finally {
             setLoadingCategories(false);
             setLoadingProducts(false);
         }
-    }, [category_slug, getCachedData, setCacheData]);
+    }, [category_slug, getCachedData, setCacheData, searchQuery, filterProductsBySearch]);
 
     // Эффект для обработки изменения размера окна
     useEffect(() => {
@@ -194,6 +228,13 @@ const CatalogList: React.FC<CatalogListType> = ({
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // Эффект для фильтрации продуктов при изменении поискового запроса
+    useEffect(() => {
+        if (products.length > 0) {
+            setFilteredProducts(filterProductsBySearch(products, searchQuery));
+        }
+    }, [searchQuery, products, filterProductsBySearch]);
 
     // Генерация микроразметки для категорий и продуктов
     const generateBreadcrumbSchema = useMemo(() => {
@@ -236,19 +277,25 @@ const CatalogList: React.FC<CatalogListType> = ({
 
     // Генерация микроразметки для списка продуктов
     const generateProductListSchema = useMemo(() => {
-        if (products.length === 0) return null;
+        const productsToUse = isCatalogPage && searchQuery ? filteredProducts : products;
+        
+        if (productsToUse.length === 0) return null;
         
         return {
             "@context": "https://schema.org",
             "@type": "ItemList",
-            "name": currentCategory 
-                ? `Товары в категории ${currentCategory.name}` 
-                : "Все товары",
-            "description": currentCategory 
-                ? `Список товаров в категории ${currentCategory.name}` 
-                : "Список всех товаров в каталоге",
-            "numberOfItems": products.length,
-            "itemListElement": products.map((product, index) => ({
+            "name": searchQuery 
+                ? `Результаты поиска: "${searchQuery}"`
+                : currentCategory 
+                    ? `Товары в категории ${currentCategory.name}` 
+                    : "Все товары",
+            "description": searchQuery 
+                ? `Товары по запросу "${searchQuery}"`
+                : currentCategory 
+                    ? `Список товаров в категории ${currentCategory.name}` 
+                    : "Список всех товаров в каталоге",
+            "numberOfItems": productsToUse.length,
+            "itemListElement": productsToUse.map((product, index) => ({
                 "@type": "ListItem",
                 "position": index + 1,
                 "item": {
@@ -264,11 +311,38 @@ const CatalogList: React.FC<CatalogListType> = ({
                 }
             }))
         };
-    }, [products, currentCategory]);
+    }, [filteredProducts, products, currentCategory, searchQuery, isCatalogPage]);
+
+    // Рендер заголовка с результатами поиска
+    const renderSearchHeader = useMemo(() => {
+        if (!isCatalogPage || !searchQuery) return null;
+        
+        return (
+            <div className="w-full mb-4">
+                <h2 className="text-lg font-semibold">
+                    {filteredProducts.length > 0 
+                        ? `Найдено ${filteredProducts.length} товаров по запросу: "${searchQuery}"`
+                        : `По запросу "${searchQuery}" ничего не найдено`
+                    }
+                </h2>
+                {filteredProducts.length > 0 && (
+                    <Link 
+                        href={getHrefWithCity('/catalog')} 
+                        className="text-blue-600 hover:underline text-sm"
+                    >
+                        Показать все товары
+                    </Link>
+                )}
+            </div>
+        );
+    }, [isCatalogPage, searchQuery, filteredProducts.length, getHrefWithCity]);
 
     // Рендер списка продуктов
     const renderList = useMemo(() => {
-        if (loadingProducts) {
+        const productsToRender = isCatalogPage && searchQuery ? filteredProducts : products;
+        const isLoading = loadingProducts || (isCatalogPage && searchQuery && filteredProducts.length === 0 && products.length > 0);
+
+        if (isLoading) {
             return [...Array(itemsCount)].map((_, index) => (
                 <div 
                     key={index} 
@@ -278,7 +352,23 @@ const CatalogList: React.FC<CatalogListType> = ({
             ));
         }
 
-        if (products.length === 0) {
+        if (productsToRender.length === 0) {
+            if (isCatalogPage && searchQuery) {
+                return (
+                    <div className="col-span-full text-center py-8">
+                        <p className="text-[length:var(--size-mobile-large-text)] font-black md:text-[length:var(--size-md-large-text)] lg:text-[length:var(--size-lg-large-text)]">
+                            По запросу "{searchQuery}" ничего не найдено
+                        </p>
+                        <Link 
+                            href={getHrefWithCity('/catalog')} 
+                            className="text-blue-600 hover:underline mt-4 inline-block"
+                        >
+                            Вернуться к каталогу
+                        </Link>
+                    </div>
+                );
+            }
+            
             return (
                 <p className="text-[length:var(--size-mobile-large-text)] font-black md:text-[length:var(--size-md-large-text)] lg:text-[length:var(--size-lg-large-text)] col-span-full">
                     Не найдено техники
@@ -286,11 +376,11 @@ const CatalogList: React.FC<CatalogListType> = ({
             );
         }
 
-        const productsToRender = all ? products : products.slice(0, 7);
+        const productsToShow = all ? productsToRender : productsToRender.slice(0, 7);
         
         return (
             <>
-                {productsToRender.map((el) => (
+                {productsToShow.map((el) => (
                     <ItemCatalog 
                         key={el.id}
                         name={el.name} 
@@ -304,11 +394,25 @@ const CatalogList: React.FC<CatalogListType> = ({
                 {!all && <ItemCatalog view="go" />}
             </>
         );
-    }, [loadingProducts, products, all, itemsCount]);
+    }, [
+        loadingProducts, 
+        products, 
+        filteredProducts, 
+        all, 
+        itemsCount, 
+        isCatalogPage, 
+        searchQuery, 
+        getHrefWithCity
+    ]);
+
+    // Скрываем категории на странице поиска
+    const shouldShowCategories = useMemo(() => {
+        return category && (!isCatalogPage || !searchQuery);
+    }, [category, isCatalogPage, searchQuery]);
 
     // Рендер категорий
     const renderCategory = useMemo(() => {
-        if (!category) return null;
+        if (!shouldShowCategories) return null;
 
         if (loadingCategories) {
             return [...Array(8)].map((_, index) => (
@@ -331,7 +435,7 @@ const CatalogList: React.FC<CatalogListType> = ({
                 </div>
             </Link>
         ));
-    }, [category, loadingCategories, categories, getHrefWithCity]);
+    }, [shouldShowCategories, loadingCategories, categories, getHrefWithCity]);
 
     return (
         <>  
@@ -346,6 +450,15 @@ const CatalogList: React.FC<CatalogListType> = ({
                         content={`Широкий выбор ${currentCategory.name} в нашем каталоге. ${currentCategory.count} товаров по доступным ценам с доставкой.`} 
                     />
                 )}
+                {searchQuery && (
+                    <title>{`Поиск: "${searchQuery}" - каталог товаров`}</title>
+                )}
+                {searchQuery && (
+                    <meta 
+                        name="description" 
+                        content={`Результаты поиска по запросу "${searchQuery}". Найдено ${filteredProducts.length} товаров в нашем каталоге.`} 
+                    />
+                )}
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(generateBreadcrumbSchema) }}
@@ -358,15 +471,20 @@ const CatalogList: React.FC<CatalogListType> = ({
                 )}
             </Head>
             
+            {/* Заголовок с результатами поиска */}
+            {renderSearchHeader}
+            
             {/* Семантическая разметка для навигации по категориям */}
-            <nav aria-label="Категории товаров">
-                <div className="w-full flex flex-wrap gap-[6px] mt-[12px]">
-                    {renderCategory}
-                </div>
-            </nav>
+            {shouldShowCategories && (
+                <nav aria-label="Категории товаров">
+                    <div className="w-full flex flex-wrap gap-[6px] mt-[12px]">
+                        {renderCategory}
+                    </div>
+                </nav>
+            )}
             
             {/* Семантическая разметка для списка товаров */}
-            <section aria-label="Список товаров">
+            <section aria-label={searchQuery ? `Результаты поиска: ${searchQuery}` : "Список товаров"}>
                 <div className="w-full grid max-[600px]:grid-cols-2 min-[600px]:grid-cols-3 lg:grid-cols-4 gap-[12px] mt-[12px]">
                     {renderList}
                 </div>

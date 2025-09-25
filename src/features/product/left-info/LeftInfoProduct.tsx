@@ -10,6 +10,8 @@ import { useParams } from "next/navigation"
 import { useEffect, useState, useCallback, useMemo } from "react"
 import { IoHeartOutline, IoHeart } from "react-icons/io5"
 import { isFavorite, toggleFavorite, FavoriteItem } from "@/shared/utils/favorites"
+import { useCity } from "@/hooks/useCity"
+import { CITY_CASES } from "@/config/cities"
 
 const CACHE_DURATION = 10 * 60 * 1000; // 10 минут
 
@@ -19,6 +21,7 @@ const LeftInfoProduct = () => {
     const [specifications, setSpecifications] = useState<Specification[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [favoriteState, setFavoriteState] = useState(false);
+    const { slug, isCityVersion } = useCity();
     const params = useParams();
     const product_id = params.id as string;
 
@@ -114,6 +117,12 @@ const LeftInfoProduct = () => {
         />
     ), []);
 
+    const getCityName = useCallback(() => {
+        if (!isCityVersion) return 'Вся Россия';
+        const cityData = CITY_CASES[slug as keyof typeof CITY_CASES];
+        return cityData ? cityData.nominative : 'Неизвестный город';
+    }, [isCityVersion, slug]);
+
     // Мемоизированные значения для оптимизации рендеринга
     const descriptionParagraphs = useMemo(() => 
         product?.description?.split('\n').filter(paragraph => paragraph.trim()) || []
@@ -190,12 +199,7 @@ const LeftInfoProduct = () => {
                     <SkeletonLoader height="25px" />
                 ) : (
                     <>
-                        {renderNull(product?.location)}
-                        {product?.location && (
-                            <p className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] leading-[1.2]">
-                                    {product.location}
-                            </p>
-                        )}
+                        {getCityName()}
                     </>
                 )}
             </div>

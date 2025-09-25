@@ -16,6 +16,7 @@ export interface Product {
 export interface Specification {
     id: number;
     name: string;
+    view_list: number;
     value: string;
 }
 
