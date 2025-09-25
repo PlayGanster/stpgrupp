@@ -322,7 +322,7 @@ const CatalogList: React.FC<CatalogListType> = ({
                 <h2 className="text-lg font-semibold">
                     {filteredProducts.length > 0 
                         ? `Найдено ${filteredProducts.length} товаров по запросу: "${searchQuery}"`
-                        : `По запросу "${searchQuery}" ничего не найдено`
+                        : ``
                     }
                 </h2>
                 {filteredProducts.length > 0 && (
@@ -340,7 +340,9 @@ const CatalogList: React.FC<CatalogListType> = ({
     // Рендер списка продуктов
     const renderList = useMemo(() => {
         const productsToRender = isCatalogPage && searchQuery ? filteredProducts : products;
-        const isLoading = loadingProducts || (isCatalogPage && searchQuery && filteredProducts.length === 0 && products.length > 0);
+        
+        // Исправляем условие отображения скелетона
+        const isLoading = loadingProducts && products.length === 0;
 
         if (isLoading) {
             return [...Array(itemsCount)].map((_, index) => (

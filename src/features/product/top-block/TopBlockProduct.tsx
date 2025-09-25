@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState, useCallback } from "react"
 import { IoIosArrowForward } from "react-icons/io";
+import { useCity } from "@/hooks/useCity";
 
 const CACHE_DURATION = 10 * 60 * 1000; // 10 минут
 
@@ -20,6 +21,17 @@ const TopBlockProduct = () => {
     const [error, setError] = useState<string | null>(null);
     const params = useParams();
     const product_id = params.id as string;
+    
+    // Используем хук для определения города
+    const { slug, isCityVersion } = useCity();
+
+    // Функция для формирования ссылок с учетом города
+    const getLink = (href: string) => {
+        if (isCityVersion && slug) {
+            return `/${slug}${href}`;
+        }
+        return href;
+    };
 
     const fetchData = useCallback(async () => {
         try {
@@ -121,7 +133,7 @@ const TopBlockProduct = () => {
                     renderSkeleton("80px")
                 ) : (
                     <Link 
-                        href="/catalog" 
+                        href={getLink("/catalog")} 
                         className="leading-[1] hover:text-[var(--orange-hover-color)] transition-colors"
                         aria-label="Перейти в каталог"
                     >
@@ -134,7 +146,7 @@ const TopBlockProduct = () => {
                     renderSkeleton("80px")
                 ) : (
                     <Link 
-                        href={`/catalog/${category?.slug}`} 
+                        href={getLink(`/catalog/${category?.slug}`)} 
                         className="leading-[1] hover:text-[var(--orange-hover-color)] transition-colors"
                         aria-label={`Перейти в категорию: ${category?.name}`}
                     >
