@@ -432,7 +432,7 @@ const CatalogList: React.FC<CatalogListType> = ({
                 key={el.id}
                 aria-label={`Перейти в категорию ${el.name} (${el.count} товаров)`}
             >
-                <div className="px-[15px] py-[8px] rounded-[10px] bg-[var(--grey-text-color)] lg:text-[length:var(--size-lg-small-text)] md:text-[length:var(--size-md-small-text)] text-[length:var(--size-mobile-small-text)] text-white hover:bg-[var(--orange-hover-color)] transition-colors">
+                <div className="px-[15px] py-[8px] rounded-[10px] bg-[var(--grey-bg-header-color)] lg:text-[length:var(--size-lg-small-text)] md:text-[length:var(--size-md-small-text)] text-[length:var(--size-mobile-small-text)] text-white hover:bg-[var(--orange-hover-color)] transition-colors">
                     {el.name} ({el.count})
                 </div>
             </Link>

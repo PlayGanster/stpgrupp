@@ -194,9 +194,18 @@ const Header = () => {
           {
             logoIsVisible ? (
               <div className='flex gap-[20px] items-center'>
-                <Link href={isCityVersion ? `/${slug}` : '/'} className="lg:h-[45px] lg:mt-[10px] h-[40px] min-w-max w-[auto]">
-                  <Image src={LogoImageWhite} alt="Логотип СТП ГРУПП" className="md-[50px] h-[40px] min-w-max w-[auto]" />
+                <Link href={isCityVersion ? `/${slug}` : '/'} className="lg:h-[30px] lg:mt-[10px] h-[30px] min-w-max w-[auto]">
+                  <Image src={LogoImageWhite} alt="Логотип СТП ГРУПП" className="md:h-[32px] h-[30px] md:mt-[-5px] min-w-max w-[auto]" />
                 </Link>
+                <ul className="gap-[12px] items-center md:flex hidden">
+                  {
+                    menuHeader.map((el, index) => (
+                      <Link href={getMenuLink(el.href)} key={index}>
+                        <li className="text-[14px] text-white hover:text-[var(--href-hover-color)]">{el.name}</li>
+                      </Link>
+                    ))
+                  }
+                </ul>
                 {openBurger ? (<RxCross2 className="md:hidden flex text-white" onClick={handleOpen} size={24} />) : (<RxHamburgerMenu className="md:hidden flex text-white" onClick={handleOpen} size={24} />)}
               </div>
             ) : (
@@ -205,15 +214,19 @@ const Header = () => {
               </>
             )
           }
-          <ul className="gap-[12px] items-center md:flex hidden">
-            {
-              menuHeader.map((el, index) => (
-                <Link href={getMenuLink(el.href)} key={index}>
-                  <li className="text-[14px] text-white hover:text-[var(--href-hover-color)]">{el.name}</li>
-                </Link>
-              ))
-            }
-          </ul>
+          {
+            logoIsVisible ? "" : (
+              <ul className="gap-[12px] items-center md:flex hidden">
+                {
+                  menuHeader.map((el, index) => (
+                    <Link href={getMenuLink(el.href)} key={index}>
+                      <li className="text-[14px] text-white hover:text-[var(--href-hover-color)]">{el.name}</li>
+                    </Link>
+                  ))
+                }
+              </ul>
+            )
+          }
           <div className="flex items-center gap-[12px]">
             <div className="lg:flex hidden"><Button onClick={() => setOpenForm(!openForm)} name="Позвонить по телефону" icon={FaPhone} height={35} size="default" padding="normal" /></div>
             <div className="lg:flex hidden"><Link target='_blank' href="https://wa.me/89630081446"><Button name="Написать в WhatsApp" color="green" icon={FaWhatsapp} height={35} size="default" padding="normal" /></Link></div>

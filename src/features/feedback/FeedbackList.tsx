@@ -221,7 +221,7 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
         );
     }, [reviews, view, products, getHrefWithCity]);
 
-    const containerHeightClass = !reviews || reviews.length === 0 ? "h-auto" : "lg:h-[485px] md:h-[460px]";
+    const containerHeightClass = !reviews || reviews.length === 0 ? "h-auto" : "lg:max-h-[485px] md:max-h-[460px]";
 
     return (
         <section aria-labelledby="feedback-list-heading" className={`relative ${containerHeightClass}`}>

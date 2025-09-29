@@ -64,7 +64,7 @@ const ItemCarousel: React.FC<ItemCarouselType> = ({
     
     return (
         <div 
-            className="md:h-[260px] min-[500px]:h-[180px] h-[120px] min-w-[120px] min-[500px]:min-w-[180px] md:min-w-[240px] flex justify-center items-center rounded-[20px] overflow-hidden relative"
+            className="md:h-[260px] min-[500px]:h-[180px] h-[120px] min-w-[120px] min-[500px]:min-w-[180px] md:min-w-[240px] flex justify-center items-center md:rounded-[20px] overflow-hidden relative"
             itemProp={itemProp}
             itemType="https://schema.org/ImageObject"
         >

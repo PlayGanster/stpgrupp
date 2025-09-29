@@ -181,15 +181,6 @@ const LeftInfoProduct = () => {
             <div className="md:hidden flex w-full h-[75px]">
                 <RightItem />
             </div>
-
-            {/* Наши работы - h2 для иерархии заголовков */}
-            <div className="mt-[12px] gap-[8px] flex flex-col">
-                <h2 className="text-[length:var(--size-mobile-heading-text)] md:text-[length:var(--size-md-heading-text)] lg:text-[length:var(--size-lg-heading-text)] font-black">
-                    Наши работы
-                </h2>
-                <ReelsList />
-            </div>
-
             {/* Расположение - h2 для иерархии заголовков */}
             <div className="mt-[12px] gap-[8px] flex flex-col">
                 <h2 className="text-[length:var(--size-mobile-heading-text)] md:text-[length:var(--size-md-heading-text)] lg:text-[length:var(--size-lg-heading-text)] font-black">
@@ -215,11 +206,11 @@ const LeftInfoProduct = () => {
                     <>
                         {renderNull(specifications)}
                         {specifications && specifications.length > 0 && (
-                            <ul className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] leading-[1.2] min-[450px]:columns-2 columns-1 gap-x-[12px]">
+                            <ul className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] leading-[1.2]">
                                 {specifications.map((el, index) => (
-                                    <li key={index} className="flex gap-[4px] mb-[6px]">
-                                        <p>{el.name}:</p>
-                                        <p className="text-[var(--grey-text-color)]">{el.value}</p>
+                                    <li key={index} className="flex gap-[4px] mb-[6px] items-baseline">
+                                        <p className="whitespace-nowrap">{el.name}:</p>
+                                        <p className="text-[var(--grey-text-color)] whitespace-nowrap overflow-hidden text-ellipsis">{el.value}</p>
                                     </li>
                                 ))}
                             </ul>
@@ -252,7 +243,7 @@ const LeftInfoProduct = () => {
             </div>
 
             {/* Отзывы - h2 для иерархии заголовков */}
-            <div className="mt-[12px] gap-[8px] flex flex-col">
+            <div className="mt-[12px] gap-[8px] flex flex-col" id="reviews">
                 <h2 className="text-[length:var(--size-mobile-heading-text)] md:text-[length:var(--size-md-heading-text)] lg:text-[length:var(--size-lg-heading-text)] font-black">
                     Отзывы
                 </h2>
@@ -264,6 +255,15 @@ const LeftInfoProduct = () => {
                     </div>
                 )}
             </div>
+
+            {/* Наши работы - h2 для иерархии заголовков */}
+            <div className="mt-[12px] gap-[8px] flex flex-col">
+                <h2 className="text-[length:var(--size-mobile-heading-text)] md:text-[length:var(--size-md-heading-text)] lg:text-[length:var(--size-lg-heading-text)] font-black">
+                    Наши работы
+                </h2>
+                <ReelsList />
+            </div>
+
         </div>
     );
 };

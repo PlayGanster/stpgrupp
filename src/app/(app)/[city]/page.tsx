@@ -194,12 +194,6 @@ export default function Home({ params }: { params: { city?: string } }) {
             </div>
           </section>
 
-          {/* Секция "Наши работы" */}
-          <section aria-label="Наши работы" className="w-full mt-[20px]">
-            <h2 className="font-black lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)]">Наши работы {cityPrepositional}</h2>
-            <ReelsList />
-          </section>
-
           {/* Секция "Наши Партнеры" */}
           <section aria-label="Наши партнеры" className="w-full mt-[20px]">
             <h2 className="font-black lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)]">Наши Партнеры</h2>
@@ -210,6 +204,12 @@ export default function Home({ params }: { params: { city?: string } }) {
           <section aria-label="Каталог техники" className="w-full mt-[20px]">
             <h2 className="font-black lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)]">Каталог техники {cityPrepositional}</h2>
             <CatalogList all={false} />
+          </section>
+
+          {/* Секция "Наши работы" */}
+          <section aria-label="Наши работы" className="w-full mt-[20px]">
+            <h2 className="font-black lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)]">Наши работы</h2>
+            <ReelsList />
           </section>
 
           {/* Секция "Новости" */}

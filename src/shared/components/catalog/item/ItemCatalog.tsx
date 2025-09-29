@@ -156,7 +156,7 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
               aria-label="Посмотреть все товары в каталоге"
             >
                 <div 
-                  className="min-[500px]:h-[180px] h-[120px] md:h-[260px] bg-[var(--bg-grey-color)] rounded-[20px] text-[white] flex justify-center items-center cursor-pointer lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] relative"
+                  className="min-[500px]:h-[180px] h-[120px] md:h-[260px] bg-[var(--bg-grey-color)] md:rounded-[20px] text-[white] flex justify-center items-center cursor-pointer lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] relative"
                   itemScope
                   itemType="https://schema.org/ItemList"
                 >
@@ -193,7 +193,7 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
               </div>
             </Link>
             
-            <div className="flex gap-[12px] mt-[6px] h-full">
+            <div className="flex gap-[12px] mt-[6px] h-full lg:px-[6px]">
               <div className="w-[90%] flex flex-col justify-between">
                 <Link href={hrefGet()}>
                   <h3 
@@ -213,7 +213,7 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
                         className="text-xs text-gray-600 line-clamp-1"
                         title={`${spec.name}: ${spec.value}`}
                       >
-                        <span className="font-medium">{spec.name}:</span> {spec.value}
+                        <span className="font-medium">{spec.name}:</span> <span className="font-black">{spec.value}</span>
                       </div>
                     ))}
                   </div>
@@ -254,9 +254,9 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
                   )}
                 </div>
                 
-                <span className="flex absolute min-w-max right-0 bottom-0 gap-[4px] lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] max-[400px]:text-[length:10px] font-regular items-center">
-                  <span className="min-[401px]:hidden"><BsGeoAlt size={12} /></span>
-                  <span className="max-[401px]:hidden"><BsGeoAlt size={16} /></span>  
+                <span className="flex absolute min-w-max right-0 bottom-0 gap-[4px] lg:text-[length:var(--size-lg-small-text)] md:text-[length:var(--size-md-small-text)] text-[length:var(--size-mobile-small-text)] max-[400px]:text-[length:10px] text-gray-600 font-regular items-center">
+                  <span className="min-[401px]:hidden"><BsGeoAlt fill="text-gray-600" size={12} /></span>
+                  <span className="max-[401px]:hidden"><BsGeoAlt fill="text-gray-600" size={14} /></span>  
                   {getCityName()}
                 </span>
               </div>

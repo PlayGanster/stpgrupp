@@ -10,6 +10,10 @@ import { useParams } from "next/navigation"
 import { getReviewByProduct, Review } from "@/actions/reviews"
 import { averageReviews } from "@/shared/utils/AverageReviews"
 import { declineReviews } from "@/shared/utils/DeclineReviews"
+import { getCategory, Category } from "@/actions/categories"
+import { useCity } from "@/hooks/useCity"
+import Image from "next/image"
+import AvatarImage from "@/assets/stpgrupplogo_avatar.png"
 
 const CACHE_DURATION = 10 * 60 * 1000; // 10 минут
 
@@ -18,10 +22,28 @@ const RightItem = () => {
   const [isSticky, setIsSticky] = useState(false);
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<Product | null>(null);
+  const [category, setCategory] = useState<Category | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reviews, setReviews] = useState<Review[] | null>(null);
   const params = useParams();
   const product_id = params.id as string;
+  
+  // Используем хук для определения города
+  const { slug, isCityVersion } = useCity();
+
+  // Функция для формирования ссылок с учетом города
+  const getLink = (href: string) => {
+    if (isCityVersion && slug) {
+      return `/${slug}${href}`;
+    }
+    return href;
+  };
+
+  // Функция для форматирования цены без копеек
+  const formatPrice = useCallback((price: number | undefined) => {
+    if (!price) return "0";
+    return Math.floor(price).toLocaleString('ru-RU');
+  }, []);
 
   const fetchData = useCallback(async () => {
     try {
@@ -43,7 +65,12 @@ const RightItem = () => {
       setReviews(reviewsData.status === 'fulfilled' ? reviewsData.value : null);
 
       if (cachedProductData.status === 'fulfilled' && cachedProductData.value) {
-        setProduct(cachedProductData.value);
+        const productData = cachedProductData.value;
+        setProduct(productData);
+        
+        // Загружаем категорию для кэшированного товара
+        const categoryData = await getCategory(Number(productData.category_id));
+        setCategory(categoryData);
         setLoading(false);
         return;
       }
@@ -53,6 +80,11 @@ const RightItem = () => {
       
       if (productData) {
         setProduct(productData);
+        
+        // Загружаем категорию для нового товара
+        const categoryData = await getCategory(Number(productData.category_id));
+        setCategory(categoryData);
+        
         localStorage.setItem(`cachedProduct${product_id}`, JSON.stringify(productData));
         localStorage.setItem(`productCacheTimestamp${product_id}`, now.toString());
       } else {
@@ -105,11 +137,11 @@ const RightItem = () => {
     
     const rating = Math.round(Number(averageRating));
     return (
-      <div className="flex items-center gap-[4px]">
+      <div className="flex items-center gap-0 lg:gap-[4px]">
         {[...Array(5)].map((_, i) => (
           <div 
             key={i}
-            className={`w-5 h-5 ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
+            className={`w-auto h-auto ${i < rating ? 'text-yellow-400' : 'text-gray-300'}`}
           >
             <FaStar className="lg:w-[18px] lg:h-[18px] md:w-[16px] md:h-[16px] w-[14px] h-[14px]" />
           </div>
@@ -124,7 +156,7 @@ const RightItem = () => {
         <SkeletonLoader width="320px" height="40px" />
       ) : (
         <div className="text-[length:var(--size-mobile-heading-text)] md:text-[length:var(--size-md-heading-text)] lg:text-[length:var(--size-lg-heading-text)] font-black leading-[1.2]">
-          от {product?.price} ₽ за час
+          от {formatPrice(product?.price)} ₽ за час
         </div>
       )}
       
@@ -139,41 +171,52 @@ const RightItem = () => {
       
       <ProductButton />
       
-      <div className="felx flex-col gap-[6px]">
-        <p className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] font-black">СТП-ГРУПП</p>
-        <p className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] text-[var(--grey-text-color)] font-semibold">Аренда Спецтехники</p>
-        <div className="flex gap-[12px] items-center relative z-5">
-          {loading ? (
-            <SkeletonLoader width="34px" height="25px" />
-          ) : (
-            <p className="lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] font-black">
-              {averageRating}
-            </p>
-          )}
-          
-          {RatingStars}
-          
-          {loading ? (
-            <SkeletonLoader width="100px" height="25px" />
-          ) : (
-            <Link 
-              href="#reviews" 
-              className="lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] text-[var(--blue-color)] hover:underline"
-            >
-              {reviewsCount} {reviewsDeclension}
-            </Link>
-          )}
+      <div className="flex gap-[6px]">
+        <div className="w-[70px] h-[70px] rounded-full relative overflow-hidden">
+          <Image fill alt="Аватарка СТП-ГРУПП" src={AvatarImage} className="object-cover " />
+        </div>
+        <div>
+          <p className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] font-black">СТП-ГРУПП</p>
+          <p className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] text-[var(--grey-text-color)] font-semibold">Аренда Спецтехники</p>
+          <div className="flex gap-[12px] items-center relative z-5">
+            {loading ? (
+              <SkeletonLoader width="34px" height="25px" />
+            ) : (
+              <p className="lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] font-black">
+                {averageRating}
+              </p>
+            )}
+            
+            {RatingStars}
+            
+            {loading ? (
+              <SkeletonLoader width="100px" height="25px" />
+            ) : (
+              <Link 
+                href="#reviews" 
+                className="lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] text-[var(--blue-color)] hover:underline whitespace-nowrap"
+              >
+                {reviewsCount} {reviewsDeclension}
+              </Link>
+            )}
+          </div>
         </div>
       </div>
       
       <div className="flex flex-col gap-[6px]">
-        <Link href="/catalog" aria-label="Перейти к каталогу всех кранов">
-          <div className="w-full cursor-pointer flex justify-center lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] items-center text-white h-[35px] bg-[var(--grey-text-color)] rounded-[6px] hover:bg-[var(--grey-text-color-dark)] transition-colors">
-            Все краны
+        <Link 
+          href={getLink(`/catalog/${category?.slug}`)} 
+          aria-label={`Перейти к каталогу ${category?.name}`}
+        >
+          <div className="w-full cursor-pointer flex justify-center lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] items-center text-white h-[35px] bg-[var(--grey-text-color)] rounded-[6px] hover:bg-[var(--grey-bg-header-color)] transition-colors">
+            Все {category?.name || 'краны'}
           </div>
         </Link>
-        <Link href="/catalog" aria-label="Перейти к каталогу всей техники и услуг">
-          <div className="w-full cursor-pointer flex justify-center lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] items-center text-white h-[35px] bg-[var(--grey-text-color)] rounded-[6px] hover:bg-[var(--grey-text-color-dark)] transition-colors">
+        <Link 
+          href={getLink("/catalog")} 
+          aria-label="Перейти к каталогу всей техники и услуг"
+        >
+          <div className="w-full cursor-pointer flex justify-center lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] items-center text-white h-[35px] bg-[var(--grey-text-color)] rounded-[6px] hover:bg-[var(--grey-bg-header-color)] transition-colors">
             Вся техника и услуги
           </div>
         </Link>
@@ -187,7 +230,7 @@ const RightItem = () => {
         <SkeletonLoader width="320px" height="25px" />
       ) : (
         <div className="text-[length:var(--size-mobile-heading-text)] md:text-[length:var(--size-md-heading-text)] lg:text-[length:var(--size-lg-heading-text)] font-black leading-[1.2]">
-          от {product?.price} ₽ за час
+          от {formatPrice(product?.price)} ₽ за час
         </div>
       )}
       <ProductButton />
