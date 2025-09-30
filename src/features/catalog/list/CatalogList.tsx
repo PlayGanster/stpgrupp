@@ -344,8 +344,18 @@ const CatalogList: React.FC<CatalogListType> = ({
         // Исправляем условие отображения скелетона
         const isLoading = loadingProducts && products.length === 0;
 
-        if (isLoading) {
-            return [...Array(itemsCount)].map((_, index) => (
+        if (isLoading && window.innerWidth >= 600) {
+            return [...Array(8)].map((_, index) => (
+                <div 
+                    key={index} 
+                    className="px-[15px] py-[8px] min-[500px]:h-[180px] h-[180px] md:h-[320px] rounded-[10px] bg-gray-200 animate-pulse"
+                    aria-hidden="true"
+                />
+            ));
+        }
+
+        if (isLoading && window.innerWidth <= 600) {
+            return [...Array(4)].map((_, index) => (
                 <div 
                     key={index} 
                     className="px-[15px] py-[8px] min-[500px]:h-[180px] h-[180px] md:h-[320px] rounded-[10px] bg-gray-200 animate-pulse"
@@ -378,7 +388,7 @@ const CatalogList: React.FC<CatalogListType> = ({
             );
         }
 
-        const productsToShow = all ? productsToRender : productsToRender.slice(0, 7);
+        const productsToShow = all ? productsToRender : productsToRender.slice(0, (window.innerWidth >= 600 ? 7 : 3));
         
         return (
             <>

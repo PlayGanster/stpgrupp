@@ -166,7 +166,7 @@ export default function Home({ params }: { params: { city?: string } }) {
             
             <div className="w-full flex max-h-[454px] h-full justify-end relative">
               <Image 
-                className="lg:h-[490px] md:h-[240px] h-[360px] min-w-[520px] md:min-w-[420px] lg:min-w-[680px] w-auto absolute right-[-40px] bottom-[-120px] md:bottom-[-225px] lg:bottom-[-310px] z-0 lg:flex hidden" 
+                className="lg:h-[400px] md:h-[240px] h-[360px] min-w-[520px] md:min-w-[420px] lg:min-w-[680px] w-auto absolute right-[-40px] bottom-[-120px] md:bottom-[-225px] lg:bottom-[-270px] z-0 lg:flex hidden" 
                 src={Banner2} 
                 alt={`Аренда экскаваторов и погрузчиков ${cityPrepositional} - СТП Групп`} 
                 priority
@@ -174,7 +174,7 @@ export default function Home({ params }: { params: { city?: string } }) {
                 height={490}
               />
               <Image 
-                className="lg:h-[480px] md:h-[360px] h-[360px] min-w-[360px] md:min-w-[360px] lg:min-w-[480px] w-auto absolute right-[-130px] bottom-[-35px] md:bottom-[-169.5px] lg:right-[-150px] lg:bottom-[-223.5px] z-0" 
+                className="lg:h-[460px] md:h-[360px] h-[360px] min-w-[360px] md:min-w-[360px] lg:min-w-[460px] w-auto absolute right-[-130px] bottom-[-35px] md:bottom-[-169.5px] lg:right-[-150px] lg:bottom-[-223.5px] z-0" 
                 src={Banner1} 
                 alt={`Аренда строительной техники для грузоперевозок ${cityPrepositional}`} 
                 priority

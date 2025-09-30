@@ -229,7 +229,7 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
                 
                 <div itemProp="offers" itemScope itemType="https://schema.org/Offer" className="flex items-center lg:mt-[0px] mt-[12px] gap-2 justify-between">
                   <p 
-                    className="lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] font-black"
+                    className="lg:text-[length:20px] md:text-[length:18px] text-[length:16px] max-[600px]:text-[length:12px] font-black"
                     itemProp="price"
                     content={price.toString()}
                   >
@@ -254,7 +254,7 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
                   )}
                 </div>
                 
-                <span className="flex absolute min-w-max right-0 bottom-0 gap-[4px] lg:text-[length:var(--size-lg-small-text)] md:text-[length:var(--size-md-small-text)] text-[length:var(--size-mobile-small-text)] max-[400px]:text-[length:10px] text-gray-600 font-regular items-center">
+                <span className="flex absolute min-w-max right-0 bottom-0 gap-[4px] lg:h-[30px] md:h-[27px] max-[768px]:h-[24px] max-[600px]:h-[18px] lg:text-[length:var(--size-lg-small-text)] md:text-[length:var(--size-md-small-text)] text-[length:var(--size-mobile-small-text)] max-[400px]:text-[length:10px] text-gray-600 font-regular items-center">
                   <span className="min-[401px]:hidden"><BsGeoAlt fill="text-gray-600" size={12} /></span>
                   <span className="max-[401px]:hidden"><BsGeoAlt fill="text-gray-600" size={14} /></span>  
                   {getCityName()}

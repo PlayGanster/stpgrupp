@@ -7,10 +7,10 @@ import LogoImage from "@/assets/logo-white.png"
 import Button from "@/shared/ui/button/Button"
 import { useState } from "react"
 import Modal from "@/shared/ui/modal/Modal"
-import ContactForm from "@/features/form/ContactForm"
 import { RxCross2 } from "react-icons/rx"
 import { useCity } from "@/hooks/useCity"
 import { CITY_CASES } from "@/config/cities"
+import CallForm from "@/features/form/CallForm"
 
 const Footer = () => {
     const [openForm, setOpenForm] = useState(false);
@@ -55,7 +55,7 @@ const Footer = () => {
                         <div className="w-full h-full flex justify-center items-center p-[12px]">
                             <div className="relative max-w-[700px] w-full p-[20px] md:p-[40px] bg-[#F2F1EF]  rounded-[20px] md:rounded-[40px]" onClick={(e) => e.stopPropagation()}>
                                 <RxCross2 onClick={() => setOpenForm(false)} size={22} className="absolute top-[15px] right-[15px] z-22 cursor-pointer" />
-                                <ContactForm />
+                                <CallForm />
                             </div>
                         </div>
                     </Modal>

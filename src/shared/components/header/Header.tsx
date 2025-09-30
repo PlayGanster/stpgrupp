@@ -13,8 +13,8 @@ import { BsGeoAlt } from 'react-icons/bs';
 import { CITY_CASES, isSupportedCity } from '@/config/cities';
 import { useCity } from '@/hooks/useCity';
 import Modal from '@/shared/ui/modal/Modal';
-import ContactForm from '@/features/form/ContactForm';
 import { useRouter } from 'next/navigation';
+import CallForm from '@/features/form/CallForm';
 
 const Header = () => {
   const [openBurger, setOpenBurger] = useState(false);
@@ -181,9 +181,9 @@ const Header = () => {
         openForm ? (
             <Modal setOpen={setOpenForm}>
                 <div className="w-full h-full flex justify-center items-center p-[12px]">
-                    <div className="relative max-w-[700px] w-full p-[20px] md:p-[40px] bg-[#F2F1EF]  rounded-[20px] md:rounded-[40px]" onClick={(e) => e.stopPropagation()}>
+                    <div className="relative max-w-[700px] w-full p-[20px] md:p-[40px] bg-[#E5E9F2]  rounded-[20px] md:rounded-[40px]" onClick={(e) => e.stopPropagation()}>
                         <RxCross2 onClick={() => setOpenForm(false)} size={22} className="absolute top-[15px] right-[15px] z-22 cursor-pointer" />
-                        <ContactForm />
+                        <CallForm />
                     </div>
                 </div>
             </Modal>

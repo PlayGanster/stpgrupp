@@ -205,7 +205,7 @@ const NewsSmallList = () => {
                 <div className="relative mt-[12px]">
                     <button 
                         onClick={scrollLeft}
-                        className="absolute left-[-12px] top-1/2 -translate-y-1/2 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="absolute left-[-12px] top-[75px] -translate-y-1/2 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
                         aria-label="Прокрутить новости влево"
                     >
                         &lt;
@@ -213,7 +213,7 @@ const NewsSmallList = () => {
                     
                     <button 
                         onClick={scrollRight}
-                        className="absolute right-[-12px] top-1/2 -translate-y-1/2 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="absolute right-[-12px] top-[75px] -translate-y-1/2 z-10 bg-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-gray-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
                         aria-label="Прокрутить новости вправо"
                     >
                         &gt;

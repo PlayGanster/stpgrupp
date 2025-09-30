@@ -1,6 +1,6 @@
 "use client"
 
-import ContactForm from "@/features/form/ContactForm";
+import CallForm from "@/features/form/CallForm";
 import Modal from "@/shared/ui/modal/Modal";
 import Link from "next/link";
 import { useState } from "react"
@@ -18,7 +18,7 @@ const ProductButton = () => {
                         <div className="w-full h-full flex justify-center items-center p-[12px]">
                             <div className="relative max-w-[700px] w-full p-[20px] md:p-[40px] bg-[#F2F1EF]  rounded-[20px] md:rounded-[40px]" onClick={(e) => e.stopPropagation()}>
                                 <RxCross2 onClick={() => setOpenModal(false)} size={22} className="absolute top-[15px] right-[15px] z-22 cursor-pointer" />
-                                <ContactForm />
+                                <CallForm />
                             </div>
                         </div>
                     </Modal>
