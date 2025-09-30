@@ -1,4 +1,4 @@
-// middleware.ts - с улучшенным логированием
+// middleware.ts - с полным логированием заголовков
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { isSupportedCity } from '@/config/cities';
@@ -6,15 +6,28 @@ import { getCachedCity, setCachedCity, shouldRefreshCache } from '@/lib/city-cac
 import { getClientIP } from '@/lib/api-utils';
 import { API_BASE_URL } from './constant/api-url';
 
+// Функция для логирования всех заголовков
+function logAllHeaders(request: NextRequest) {
+  const headers: { [key: string]: string } = {};
+  request.headers.forEach((value, key) => {
+    headers[key] = value;
+  });
+  
+  console.log('📋 ALL REQUEST HEADERS:');
+  console.log(JSON.stringify(headers, null, 2));
+  console.log('======================');
+}
+
 // Функция для определения города через API
 async function detectCityViaAPI(request: NextRequest): Promise<string | null> {
   console.log('🌐 === CITY DETECTION STARTED ===');
   
+  // Логируем все заголовки
+  logAllHeaders(request);
+  
   try {
     const userIP = getClientIP(request);
-    console.log('📡 Client IP:', userIP);
-    console.log('🏠 Request URL:', request.url);
-    console.log('👤 User Agent:', request.headers.get('user-agent'));
+    console.log('📡 Client IP from getClientIP:', userIP);
 
     const apiBase = API_BASE_URL;
     const apiUrl = userIP ? `${apiBase}/detect-city?ip=${userIP}` : `${apiBase}/detect-city`;
@@ -30,35 +43,22 @@ async function detectCityViaAPI(request: NextRequest): Promise<string | null> {
     });
 
     console.log('📨 API HTTP Status:', response.status);
-    console.log('📨 API HTTP OK:', response.ok);
 
     if (response.ok) {
       const data = await response.json();
-      console.log('🏙️ === API RESPONSE DATA ===');
-      console.log('🏙️ Full response:', JSON.stringify(data, null, 2));
-      console.log('🏙️ Success:', data.success);
-      console.log('🏙️ Detected City:', data.detected_city);
-      console.log('🏙️ Normalized City:', data.normalized_city);
-      console.log('🏙️ =========================');
+      console.log('🏙️ API Response:', data);
       
       if (data.success && data.normalized_city) {
         console.log('✅ City detection SUCCESS:', data.normalized_city);
         return data.normalized_city;
-      } else {
-        console.log('❌ City detection FAILED in API response');
       }
     } else {
-      const errorText = await response.text();
-      console.log('❌ API Error Status:', response.status);
-      console.log('❌ API Error Text:', errorText);
+      console.error('❌ API Error:', response.status);
     }
   } catch (error: any) {
-    console.log('💥 API Request FAILED:');
-    console.log('💥 Error message:', error.message);
-    console.log('💥 Error stack:', error.stack);
+    console.error('💥 API Request FAILED:', error.message);
   }
 
-  console.log('❌ === CITY DETECTION FAILED ===');
   return null;
 }
 
@@ -67,8 +67,11 @@ export async function middleware(request: NextRequest) {
   
   console.log('\n🚀 === MIDDLEWARE STARTED ===');
   console.log('🚀 Path:', pathname);
-  console.log('🚀 Host:', hostname);
-  console.log('🚀 Search params:', search);
+  console.log('🚀 Hostname from URL:', hostname);
+  console.log('🚀 Full URL:', request.url);
+
+  // Логируем все заголовки для диагностики
+  logAllHeaders(request);
 
   // Пропускаем статические файлы и API routes
   if (pathname.startsWith('/_next') || 
@@ -85,13 +88,6 @@ export async function middleware(request: NextRequest) {
   const pathParts = pathname.split('/').filter(Boolean);
   const possibleCity = pathParts[0];
 
-  console.log('🔍 Checking current path:', {
-    pathname,
-    pathParts,
-    possibleCity,
-    isSupportedCity: isSupportedCity(possibleCity)
-  });
-
   // Если URL уже содержит поддерживаемый город
   if (isSupportedCity(possibleCity)) {
     console.log('✅ Already on correct city:', possibleCity);
@@ -104,12 +100,6 @@ export async function middleware(request: NextRequest) {
   const cachedCity = getCachedCity(request);
   const needsRefresh = shouldRefreshCache(request);
   
-  console.log('💾 Cache check:', {
-    cachedCity,
-    needsRefresh,
-    hasCache: !!cachedCity
-  });
-
   let targetCity: string;
   let shouldUpdateCache = false;
 
@@ -121,26 +111,14 @@ export async function middleware(request: NextRequest) {
     const detectedCity = await detectCityViaAPI(request);
     const fallbackCity = 'vsia_rossia';
     
-    console.log('🔮 Detection results:', {
-      detectedCity,
-      fallbackCity,
-      isSupported: detectedCity && isSupportedCity(detectedCity)
-    });
-    
     targetCity = detectedCity && isSupportedCity(detectedCity) ? detectedCity : fallbackCity;
     shouldUpdateCache = true;
     console.log('🎯 Final target city:', targetCity);
   }
 
-  const remainingPath = pathname;
-  const newUrl = new URL(`/${targetCity}${remainingPath}${search}`, request.url);
+  const newUrl = new URL(`/${targetCity}${pathname}${search}`, request.url);
 
-  console.log('🔀 Redirect details:', {
-    from: pathname,
-    to: newUrl.toString(),
-    shouldUpdateCache
-  });
-
+  console.log('🔀 Redirecting to:', newUrl.toString());
   console.log('✅ === MIDDLEWARE COMPLETED ===\n');
   
   const response = NextResponse.redirect(newUrl);
