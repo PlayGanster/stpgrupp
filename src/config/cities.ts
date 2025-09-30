@@ -35,6 +35,15 @@ export const CITY_CASES = {
     prepositional: 'об Уфе',
     domain: 'ufa',
   },
+  shatura: {
+    nominative: 'Шатура',
+    genitive: 'Шатуры',
+    dative: 'Шатуре',
+    accusative: 'Шатуру',
+    instrumental: 'Шатурой',
+    prepositional: 'о Шатуре',
+    domain: 'shatura',
+  },
   belgorod: {
     nominative: 'Белгород',
     genitive: 'Белгорода',
