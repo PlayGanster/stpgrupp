@@ -55,7 +55,6 @@ const CallForm = () => {
     }
     
     const cityData = CITY_CASES[slug as keyof typeof CITY_CASES]
-    if(cityData && cityData.dative === "Всей России") return "по Всей России"
     return cityData ? `в ${cityData.dative}` : "Москве"
   }
   

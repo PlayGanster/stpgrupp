@@ -15,6 +15,7 @@ import { useCity } from '@/hooks/useCity';
 import Modal from '@/shared/ui/modal/Modal';
 import { useRouter } from 'next/navigation';
 import CallForm from '@/features/form/CallForm';
+import { API_BASE_URL } from '@/constant/api-url';
 
 const Header = () => {
   const [openBurger, setOpenBurger] = useState(false);
@@ -22,30 +23,180 @@ const Header = () => {
   const { slug, isCityVersion, currentPath } = useCity();
   const [openForm, setOpenForm] = useState(false);
   const [logoIsVisible, setLogoIsVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(''); // Состояние для поискового запроса
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDetectingGPS, setIsDetectingGPS] = useState(false);
+  const [showCityPopup, setShowCityPopup] = useState(false);
+  const [detectedCity, setDetectedCity] = useState<string>('');
   const router = useRouter();
 
   const handleOpen = () => setOpenBurger(!openBurger);
 
-  // Функция для обработки поиска
-  const handleSearch = () => {
-    if (!searchQuery.trim()) return; // Не делаем ничего если запрос пустой
+  // Функция для определения города по GPS
+  const detectCityByGPS = async () => {
+    if (!navigator.geolocation) {
+      console.log('📍 GPS not supported');
+      return;
+    }
+
+    if (isDetectingGPS) return;
     
-    // Создаем базовый URL для каталога с учетом города
+    setIsDetectingGPS(true);
+    console.log('📍 Starting GPS detection...');
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          console.log('📍 Coordinates:', { lat: latitude, lng: longitude });
+
+          const city = await detectCityByCoordinates(latitude, longitude);
+          
+          if (city && isSupportedCity(city)) {
+            console.log('📍 GPS city detected:', city);
+            saveGPSCache(city, latitude, longitude);
+            updateCityIfNeeded(city);
+          } else {
+            console.log('📍 No city found for coordinates');
+          }
+        } catch (error) {
+          console.error('📍 GPS detection failed:', error);
+        } finally {
+          setIsDetectingGPS(false);
+        }
+      },
+      (error) => {
+        console.log('📍 GPS error:', error.message);
+        setIsDetectingGPS(false);
+        
+        // Показываем сообщение об ошибке
+        if (error.code === error.PERMISSION_DENIED) {
+          alert('Для определения точного города разрешите доступ к геолокации');
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000 // 5 минут
+      }
+    );
+  };
+
+  const detectCityByCoordinates = async (lat: number, lng: number): Promise<string | null> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/detect-city-gps`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ lat, lng }),
+      });
+
+      const data = await response.json();
+      console.log('📍 GPS API response:', data);
+
+      if (data.success && data.normalized_city) {
+        return data.normalized_city;
+      }
+    } catch (error) {
+      console.error('📍 GPS API error:', error);
+    }
+    
+    return null;
+  };
+
+  const updateCityIfNeeded = (detectedCity: string) => {
+    const currentPath = window.location.pathname;
+    const pathParts = currentPath.split('/').filter(Boolean);
+    const currentCity = pathParts[0];
+
+    // Если текущий город не совпадает с определенным по GPS
+    if (currentCity !== detectedCity && isSupportedCity(detectedCity)) {
+      console.log('📍 City mismatch, updating...', { current: currentCity, detected: detectedCity });
+      
+      // Сохраняем в куки
+      document.cookie = `user_city=${JSON.stringify({
+        city: detectedCity,
+        timestamp: Date.now(),
+        path: currentPath
+      })}; path=/; max-age=900`;
+      
+      // Показываем кастомное всплывающее уведомление
+      setDetectedCity(detectedCity);
+      setShowCityPopup(true);
+    } else {
+      console.log('📍 Already on correct city:', detectedCity);
+    }
+  };
+
+  // Функция для перехода на город
+  const switchToDetectedCity = () => {
+    const currentPath = window.location.pathname;
+    const pathParts = currentPath.split('/').filter(Boolean);
+    const currentCity = pathParts[0];
+    
+    const newPath = `/${detectedCity}${currentPath.substring(currentCity ? currentCity.length + 1 : 0)}`;
+    window.location.href = newPath;
+    setShowCityPopup(false);
+  };
+
+  // Функция для отказа от перехода
+  const declineCitySwitch = () => {
+    setShowCityPopup(false);
+    // Сохраняем в localStorage что пользователь отказался
+  };
+
+  const saveGPSCache = (city: string, lat: number, lng: number) => {
+    const cache = {
+      city,
+      timestamp: Date.now(),
+      coordinates: { lat, lng }
+    };
+    localStorage.setItem('gps_city_cache', JSON.stringify(cache));
+  };
+
+  const getGPSCache = () => {
+    try {
+      const cache = localStorage.getItem('gps_city_cache');
+      return cache ? JSON.parse(cache) : null;
+    } catch {
+      return null;
+    }
+  };
+
+  // Автоматически определяем город по GPS при загрузке
+  useEffect(() => {
+    // Проверяем, не отказался ли пользователь ранее
+
+    // Проверяем есть ли свежий GPS кэш (1 час)
+    const gpsCache = getGPSCache();
+    if (gpsCache && Date.now() - gpsCache.timestamp < 60 * 60 * 1000) {
+      console.log('📍 Using cached GPS city:', gpsCache.city);
+      updateCityIfNeeded(gpsCache.city);
+      return;
+    }
+
+    // Запускаем GPS определение через 2 секунды после загрузки
+    const timer = setTimeout(() => {
+      detectCityByGPS();
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  const handleSearch = () => {
+    if (!searchQuery.trim()) return;
+    
     let catalogUrl = '/catalog';
     if (isCityVersion && slug) {
       catalogUrl = `/${slug}/catalog`;
     }
     
-    // Добавляем поисковый параметр
     const searchParams = new URLSearchParams();
     searchParams.append('query_search', searchQuery.trim());
     
-    // Перенаправляем на страницу каталога с поисковым запросом
     router.push(`${catalogUrl}?${searchParams.toString()}`);
   };
 
-  // Обработка нажатия Enter в поле поиска
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
@@ -110,30 +261,80 @@ const Header = () => {
     return cityData ? cityData.nominative : 'Неизвестный город';
   }
 
+  const getCityName = (cityKey: string): string => {
+    const cityData = CITY_CASES[cityKey as keyof typeof CITY_CASES];
+    return cityData ? cityData.nominative : cityKey;
+  }
+
+  // Рендер всплывающего уведомления о смене города
+  const renderCityPopup = () => {
+    if (!showCityPopup) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
+        <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
+          <div className="text-center">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <BsGeoAlt className="text-blue-600 text-xl" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Обнаружен ваш город
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Вы находитесь в <span className="font-semibold text-blue-600">{getCityName(detectedCity)}</span>. 
+              Хотите перейти на страницу вашего города?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={declineCitySwitch}
+                className="flex-1 py-2 px-4 md:text-[16px] text-[12px] border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+              >
+                Нет, спасибо
+              </button>
+              <button
+                onClick={switchToDetectedCity}
+                className="flex-1 py-2 px-4 md:text-[16px] text-[12px] bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+              >
+                Да, перейти
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderCitySelect = () => {
      if(!openCity) return;
      return (
         <>
           <div className="wrapper w-dvw bg-white rounded-b-[20px] fixed md:top-[120px] top-[90px] z-50 shadow-xl">
             <div className="container w-full h-[calc(100dvh-120px)] md:h-[calc(100dvh-90px)] overflow-y-auto">
+              {/* Кнопка для определения по GPS */}
+              <div className="py-3 border-b border-gray-200">
+                <button
+                  onClick={() => {
+                    setOpenCity(false);
+                    detectCityByGPS();
+                  }}
+                  disabled={isDetectingGPS}
+                  className="
+                    w-full flex items-center justify-center gap-2
+                    h-10 px-4
+                    bg-blue-500 text-white
+                    rounded-md
+                    text-sm font-medium
+                    hover:bg-blue-600
+                    disabled:bg-gray-400 disabled:cursor-not-allowed
+                    transition-colors duration-150 cursor-pointer
+                  "
+                >
+                  <BsGeoAlt size={16} />
+                  {isDetectingGPS ? 'Определяем...' : 'Определить мой город по GPS'}
+                </button>
+              </div>
+              
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 py-3">
-                <Link
-                href={getLink("all")} 
-                onClick={() => setOpenCity(false)}
-                className="
-                  inline-flex items-center justify-center
-                  h-8 px-2
-                  bg-white border border-gray-200 
-                  rounded-md
-                  md:text-[0.9rem] text-xs font-medium text-gray-700
-                  hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700
-                  transition-colors duration-150
-                  whitespace-nowrap
-                  overflow-hidden text-ellipsis
-                "
-                title="Вся Россия">
-                  Вся Россия
-                </Link>
                 {Object.entries(CITY_CASES).sort(([keyA, cityA], [keyB, cityB]) => 
                   cityA.nominative.localeCompare(cityB.nominative)
                 ).map(([key, city]) => {
@@ -177,6 +378,8 @@ const Header = () => {
 
   return (
     <>
+      {renderCityPopup()}
+      
       {
         openForm ? (
             <Modal setOpen={setOpenForm}>
@@ -264,6 +467,7 @@ const Header = () => {
             <div className="lg:flex hidden"><BsGeoAlt size={18} /></div>
             <div className="lg:hidden flex"><BsGeoAlt size={14} /></div> 
             {getCurrentCityName()}
+            {isDetectingGPS && " (определяем...)"}
           </div>
         </div>
       </div>

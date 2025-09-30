@@ -3,75 +3,19 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { isSupportedCity } from '@/config/cities';
 import { getCachedCity, setCachedCity, shouldRefreshCache } from '@/lib/city-cache';
-import { getClientIP, isValidIP } from '@/lib/api-utils';
 import { API_BASE_URL } from './constant/api-url';
 
 /**
- * Определяет город через API
- */
-async function detectCityViaAPI(request: NextRequest): Promise<string | null> {
-  const userIP = getClientIP(request);
-  
-  console.log('🌐 City Detection Started:', {
-    ip: userIP,
-    isValid: isValidIP(userIP)
-  });
-
-  if (!isValidIP(userIP)) {
-    console.log('❌ Invalid IP, skipping API call');
-    return null;
-  }
-
-  try {
-    const apiUrl = `${API_BASE_URL}/detect-city?ip=${userIP}`;
-    console.log('📡 API Request:', apiUrl);
-
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-cache',
-    });
-
-    console.log('📨 API Response status:', response.status);
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log('🏙️ API Response:', data);
-      
-      if (data.success && data.normalized_city) {
-        console.log('✅ City Detected:', data.normalized_city);
-        return data.normalized_city;
-      }
-    }
-  } catch (error: any) {
-    console.log('💥 API Exception:', error.message);
-  }
-
-  return null;
-}
-
-/**
- * Основной middleware
+ * Middleware теперь только проверяет кэш и редиректит
+ * GPS определение будет на клиенте
  */
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   
-  console.log('\n🚀 Middleware Triggered:', {
-    path: pathname
-  });
+  console.log('\n🚀 Middleware Triggered:', { path: pathname });
 
   // Пропускаем статические файлы и API
-  if (
-    pathname.startsWith('/_next') || 
-    pathname.startsWith('/api') || 
-    pathname.startsWith('/static') ||
-    pathname.includes('.') ||
-    pathname.startsWith('/sitemap') ||
-    pathname.startsWith('/robots') ||
-    pathname.startsWith('/favicon')
-  ) {
+  if (shouldSkipPath(pathname)) {
     return NextResponse.next();
   }
 
@@ -84,38 +28,45 @@ export async function middleware(request: NextRequest) {
     console.log('✅ Already on city page:', currentCity);
     const response = NextResponse.next();
     
-    // Обновляем кэш текущим городом
+    // Обновляем кэш
     const cachedCity = getCachedCity(request);
     if (!cachedCity || cachedCity !== currentCity) {
       setCachedCity(response, currentCity, pathname);
-      console.log('💾 Cache updated with:', currentCity);
+      console.log('💾 Cache updated:', currentCity);
     }
     
     return response;
   }
 
-  // ВРЕМЕННО: Игнорируем кэш и всегда определяем город заново
-  console.log('🔄 FORCED City Detection (ignoring cache)');
-  const detectedCity = await detectCityViaAPI(request);
-  const targetCity = detectedCity && isSupportedCity(detectedCity) 
-    ? detectedCity 
-    : 'vsia_rossia';
-
-  console.log('🎯 Detection Result:', {
-    detected: detectedCity,
-    final: targetCity
-  });
-
-  // Создаем новый URL
-  const newUrl = new URL(`/${targetCity}${pathname}${search}`, request.url);
+  // Если нет города в URL, проверяем кэш
+  const cachedCity = getCachedCity(request);
   
-  console.log('🔀 Redirecting to:', newUrl.toString());
+  if (cachedCity && isSupportedCity(cachedCity)) {
+    console.log('🎯 Using cached city:', cachedCity);
+    const newUrl = new URL(`/${cachedCity}${pathname}${search}`, request.url);
+    const response = NextResponse.redirect(newUrl);
+    return response;
+  }
 
+  // Если кэша нет - редиректим на Москву (вместо Вся Россия)
+  console.log('🎯 No city detected, using Moscow as default');
+  const newUrl = new URL('/moscow', request.url);
   const response = NextResponse.redirect(newUrl);
-  setCachedCity(response, targetCity, pathname);
+  setCachedCity(response, 'moscow', pathname);
   
-  console.log('✅ Middleware completed\n');
   return response;
+}
+
+function shouldSkipPath(pathname: string): boolean {
+  return (
+    pathname.startsWith('/_next') || 
+    pathname.startsWith('/api') || 
+    pathname.startsWith('/static') ||
+    pathname.includes('.') ||
+    pathname.startsWith('/sitemap') ||
+    pathname.startsWith('/robots') ||
+    pathname.startsWith('/favicon')
+  );
 }
 
 export const config = {

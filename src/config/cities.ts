@@ -35,14 +35,14 @@ export const CITY_CASES = {
     prepositional: 'об Уфе',
     domain: 'ufa',
   },
-  shatura: {
-    nominative: 'Шатура',
-    genitive: 'Шатуры',
-    dative: 'Шатуре',
-    accusative: 'Шатуру',
-    instrumental: 'Шатурой',
-    prepositional: 'о Шатуре',
-    domain: 'shatura',
+  moscow: {
+    nominative: 'Москва',
+    genitive: 'Москвы',
+    dative: 'Москве',            // корректно
+    accusative: 'Москву',
+    instrumental: 'Москвоу',
+    prepositional: 'о Москве',
+    domain: 'moscow',
   },
   belgorod: {
     nominative: 'Белгород',
@@ -503,22 +503,22 @@ export const CITY_CASES = {
     prepositional: 'о Ярославле',
     domain: 'yaroslavl',
   },
-  vsia_rossia: {
-    nominative: 'Вся Россия',
-    genitive: 'Всей России',
-    dative: 'Всей России',   // корректно
-    accusative: 'Всю Россию',
-    instrumental: 'Всей Россией',
-    prepositional: 'о всей России',
-    domain: '',
-  }
+  shatura: {
+    nominative: 'Шатура',
+    genitive: 'Шатуры',
+    dative: 'Шатуре',     // исправлено с "Ярославлю" на "Ярославле"
+    accusative: 'Шатуру',
+    instrumental: 'Шатурой',
+    prepositional: 'о Шатуре',
+    domain: 'shatura',
+  },
 } as const;
 
 
 export type CitySlug = keyof typeof CITY_CASES;
 export type CityCase = keyof typeof CITY_CASES[keyof typeof CITY_CASES];
 
-export const DEFAULT_CITY: CitySlug = 'vsia_rossia';
+export const DEFAULT_CITY: CitySlug = 'moscow';
 export const ALL_CITIES = Object.keys(CITY_CASES) as CitySlug[];
 
 export function isSupportedCity(city: string): city is CitySlug {
