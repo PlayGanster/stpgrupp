@@ -17,7 +17,6 @@ async function detectCityViaAPI(request: NextRequest): Promise<string | null> {
     isValid: isValidIP(userIP)
   });
 
-  // Если IP невалидный, сразу возвращаем null
   if (!isValidIP(userIP)) {
     console.log('❌ Invalid IP, skipping API call');
     return null;
@@ -72,9 +71,22 @@ async function detectCityViaAPI(request: NextRequest): Promise<string | null> {
 }
 
 /**
+ * Очищает путь от существующих городов
+ */
+function cleanPathFromCities(pathname: string): string {
+  const pathParts = pathname.split('/').filter(Boolean);
+  
+  // Если первый элемент - поддерживаемый город, убираем его
+  if (pathParts.length > 0 && isSupportedCity(pathParts[0])) {
+    return '/' + pathParts.slice(1).join('/');
+  }
+  
+  return pathname;
+}
+
+/**
  * Основной middleware
  */
-// middleware.ts - временная версия с принудительным определением
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   
@@ -95,31 +107,65 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // ВРЕМЕННО: Игнорируем кэш для теста
-  console.log('🔄 TEMP: Ignoring cache for testing');
-  
-  // Всегда определяем город заново
+  // Очищаем путь от городов (на случай редиректа)
+  const cleanPath = cleanPathFromCities(pathname);
+  console.log('🧹 Cleaned path:', { original: pathname, cleaned: cleanPath });
+
+  // Проверяем текущий город в URL (после очистки)
+  const pathParts = cleanPath.split('/').filter(Boolean);
+  const currentCity = pathParts[0];
+
+  console.log('🔍 Path Analysis:', {
+    pathParts,
+    currentCity,
+    isSupported: isSupportedCity(currentCity)
+  });
+
+  // Если уже на правильном городе - пропускаем
+  if (isSupportedCity(currentCity)) {
+    console.log('✅ Correct city in URL:', currentCity);
+    const response = NextResponse.next();
+    setCachedCity(response, currentCity, cleanPath);
+    return response;
+  }
+
+  // Определяем город заново (игнорируем кэш для теста)
+  console.log('🔄 Fresh City Detection');
   const detectedCity = await detectCityViaAPI(request);
   const targetCity = detectedCity && isSupportedCity(detectedCity) 
     ? detectedCity 
     : 'vsia_rossia';
 
-  console.log('🎯 Fresh Detection Result:', {
+  console.log('🎯 Detection Result:', {
     detected: detectedCity,
     final: targetCity
   });
 
-  // Создаем новый URL с городом
-  const newUrl = new URL(`/${targetCity}${pathname}${search}`, request.url);
+  // Создаем новый URL с городом (используем очищенный путь)
+  const newPath = `/${targetCity}${cleanPath === '/' ? '' : cleanPath}`;
+  const newUrl = new URL(newPath + search, request.url);
   
   console.log('🔀 Redirect:', {
     from: pathname,
-    to: newUrl.toString()
+    to: newUrl.toString(),
+    cleanPath,
+    newPath
   });
 
-  const response = NextResponse.redirect(newUrl);
-  setCachedCity(response, targetCity, pathname);
-  
-  console.log('✅ Middleware Completed\n');
-  return response;
+  // Редирект только если город изменился
+  if (currentCity !== targetCity) {
+    const response = NextResponse.redirect(newUrl);
+    setCachedCity(response, targetCity, cleanPath);
+    console.log('✅ Redirecting completed\n');
+    return response;
+  }
+
+  console.log('⏭️ No redirect needed\n');
+  return NextResponse.next();
 }
+
+export const config = {
+  matcher: [
+    '/((?!api|_next/static|_next/image|favicon.ico|sitemap|robots.txt).*)',
+  ],
+};
