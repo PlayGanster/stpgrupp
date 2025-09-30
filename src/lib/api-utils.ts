@@ -1,20 +1,35 @@
 // lib/api-utils.ts
 import { NextRequest } from 'next/server';
 
+/**
+ * Получает реальный IP клиента из заголовков nginx
+ */
 export function getClientIP(request: NextRequest): string | null {
   const headers = request.headers;
   
-  console.log('🔍 IP HEADERS CHECK:');
-  console.log('- x-real-ip:', headers.get('x-real-ip'));
-  console.log('- x-forwarded-for:', headers.get('x-forwarded-for'));
-  console.log('- x-forwarded-host:', headers.get('x-forwarded-host'));
-  console.log('- host:', headers.get('host'));
-  console.log('- remote-addr:', headers.get('remote-addr'));
-  
-  // Для nginx приоритет
+  // Приоритет заголовков для nginx
   const clientIP = headers.get('x-real-ip') || 
-                   headers.get('x-forwarded-for')?.split(',')[0].trim() || "";
+                   headers.get('x-forwarded-for')?.split(',')[0].trim();
   
-  console.log('✅ Selected IP:', clientIP);
+  console.log('🔍 IP Detection:', {
+    'x-real-ip': headers.get('x-real-ip'),
+    'x-forwarded-for': headers.get('x-forwarded-for'),
+    'selected': clientIP
+  });
+  
   return clientIP;
+}
+
+/**
+ * Проверяет валидность IP
+ */
+export function isValidIP(ip: string | null): boolean {
+  if (!ip) return false;
+  
+  const localIPs = [
+    '::1', '127.0.0.1', 'localhost', '::ffff:127.0.0.1',
+    '192.168.', '10.', '172.16.', '172.17.', '172.18.', '172.19.'
+  ];
+  
+  return !localIPs.some(local => ip.startsWith(local));
 }
