@@ -74,6 +74,7 @@ async function detectCityViaAPI(request: NextRequest): Promise<string | null> {
 /**
  * Основной middleware
  */
+// middleware.ts - временная версия с принудительным определением
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   
@@ -91,60 +92,22 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/sitemap') ||
     pathname.startsWith('/robots')
   ) {
-    console.log('⏩ Skipping static/API route');
     return NextResponse.next();
   }
 
-  // Проверяем текущий город в URL
-  const pathParts = pathname.split('/').filter(Boolean);
-  const currentCity = pathParts[0];
-
-  console.log('🔍 Path Analysis:', {
-    pathParts,
-    currentCity,
-    isSupported: isSupportedCity(currentCity)
-  });
-
-  // Если уже на правильном городе - пропускаем
-  if (isSupportedCity(currentCity)) {
-    console.log('✅ Correct city in URL:', currentCity);
-    const response = NextResponse.next();
-    setCachedCity(response, currentCity, pathname);
-    return response;
-  }
-
-  // Проверяем кэш
-  const cachedCity = getCachedCity(request);
-  const needsRefresh = shouldRefreshCache(request);
+  // ВРЕМЕННО: Игнорируем кэш для теста
+  console.log('🔄 TEMP: Ignoring cache for testing');
   
-  console.log('💾 Cache Status:', {
-    cached: cachedCity,
-    needsRefresh,
-    hasValidCache: !!cachedCity && !needsRefresh
+  // Всегда определяем город заново
+  const detectedCity = await detectCityViaAPI(request);
+  const targetCity = detectedCity && isSupportedCity(detectedCity) 
+    ? detectedCity 
+    : 'vsia_rossia';
+
+  console.log('🎯 Fresh Detection Result:', {
+    detected: detectedCity,
+    final: targetCity
   });
-
-  let targetCity: string;
-  let shouldUpdateCache = false;
-
-  if (cachedCity && !needsRefresh) {
-    // Используем кэш
-    targetCity = cachedCity;
-    console.log('🎯 Using Cached City:', targetCity);
-  } else {
-    // Определяем город заново
-    console.log('🔄 Fresh City Detection');
-    const detectedCity = await detectCityViaAPI(request);
-    
-    targetCity = detectedCity && isSupportedCity(detectedCity) 
-      ? detectedCity 
-      : 'vsia_rossia'; // fallback
-    
-    shouldUpdateCache = true;
-    console.log('🎯 Detection Result:', {
-      detected: detectedCity,
-      final: targetCity
-    });
-  }
 
   // Создаем новый URL с городом
   const newUrl = new URL(`/${targetCity}${pathname}${search}`, request.url);
@@ -155,19 +118,8 @@ export async function middleware(request: NextRequest) {
   });
 
   const response = NextResponse.redirect(newUrl);
+  setCachedCity(response, targetCity, pathname);
   
-  // Обновляем кэш если нужно
-  if (shouldUpdateCache) {
-    setCachedCity(response, targetCity, pathname);
-    console.log('💾 Cache Updated');
-  }
-
   console.log('✅ Middleware Completed\n');
   return response;
 }
-
-export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap|robots.txt).*)',
-  ],
-};
