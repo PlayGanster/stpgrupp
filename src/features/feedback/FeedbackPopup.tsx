@@ -24,7 +24,7 @@ const FeedbackPopup: React.FC<FeedbackListType> = memo(({
                 {/* Обертка для скрытия выступающего скроллбара */}
                 <div className="md:w-[700px] w-[500px] max-[550px]:w-dvw max-[550px]:h-[calc(100dvh-0px)] rounded-0 min-[550px]:rounded-[20px] md:rounded-[40px] overflow-hidden">
                     <div 
-                        className="p-[20px] h-full max-h-[80vh] max-[550px]:max-h-[calc(100dvh-0px)] relative md:p-[40px] bg-[#F2F1EF] scrollbar-custom" 
+                        className="p-[20px] h-full max-h-[80vh] max-[550px]:max-h-[calc(100dvh-0px)] relative md:p-[40px] bg-[#F2F1EF] scrollbar-custom pb-[100px]" 
                         onClick={handleContentClick}
                     >
                         <div className="w-full flex items-center justify-between mb-3">
@@ -35,7 +35,7 @@ const FeedbackPopup: React.FC<FeedbackListType> = memo(({
                                 className="cursor-pointer"
                             />
                         </div>
-                        <div className="h-full w-full overflow-y-auto pb-[100px]">
+                        <div className="h-full w-full overflow-y-auto">
                             <FeedbackList view="all" name={false} />
                         </div>
                     </div>
