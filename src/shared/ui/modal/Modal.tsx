@@ -22,17 +22,20 @@ const Modal: React.FC<ModalType> = ({
         };
 
         // Сохраняем первоначальные стили
-        const originalStyle = window.getComputedStyle(document.body).overflow;
+        const originalOverflow = document.body.style.overflow;
+        const originalPosition = document.body.style.position;
         
-        // Отключаем скролл у body
-        document.body.style.overflow = 'hidden';
+        // Отключаем скролл у body с !important
+        document.body.setAttribute('style', 'overflow: hidden !important; position: fixed !important; width: 100% !important;');
         
         // Добавляем обработчик клавиш
         document.addEventListener("keydown", onKeyDown);
 
         return () => {
-            // Восстанавливаем скролл при размонтировании
-            document.body.style.overflow = originalStyle;
+            // Восстанавливаем стили
+            document.body.style.overflow = originalOverflow;
+            document.body.style.position = originalPosition;
+            document.body.style.width = '';
             document.removeEventListener("keydown", onKeyDown);
         };
     }, [setOpen]);
