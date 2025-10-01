@@ -20,8 +20,21 @@ const Modal: React.FC<ModalType> = ({
                 setOpen(false);
             }
         };
+
+        // Сохраняем первоначальные стили
+        const originalStyle = window.getComputedStyle(document.body).overflow;
+        
+        // Отключаем скролл у body
+        document.body.style.overflow = 'hidden';
+        
+        // Добавляем обработчик клавиш
         document.addEventListener("keydown", onKeyDown);
-        return () => document.removeEventListener("keydown", onKeyDown);
+
+        return () => {
+            // Восстанавливаем скролл при размонтировании
+            document.body.style.overflow = originalStyle;
+            document.removeEventListener("keydown", onKeyDown);
+        };
     }, [setOpen]);
 
     // Остановка распространения клика внутри модалки
