@@ -35,7 +35,7 @@ const FeedbackPopup: React.FC<FeedbackListType> = memo(({
                                 className="cursor-pointer"
                             />
                         </div>
-                        <div className="h-full w-full overflow-y-auto">
+                        <div className="h-full w-full overflow-y-auto pb-[100px]">
                             <FeedbackList view="all" name={false} />
                         </div>
                     </div>
