@@ -267,42 +267,43 @@ const Header = () => {
   }
 
   // Рендер всплывающего уведомления о смене города
-  const renderCityPopup = () => {
-    if (!showCityPopup) return null;
+  // Рендер всплывающего уведомления о смене города
+// Рендер всплывающего уведомления о смене города
+const renderCityPopup = () => {
+  if (!showCityPopup) return null;
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] p-4">
-        <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-xl">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BsGeoAlt className="text-blue-600 text-xl" />
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Обнаружен ваш город
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Вы находитесь в <span className="font-semibold text-blue-600">{getCityName(detectedCity)}</span>. 
-              Хотите перейти на страницу вашего города?
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={declineCitySwitch}
-                className="flex-1 py-2 px-4 md:text-[16px] text-[12px] border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer"
-              >
-                Нет, спасибо
-              </button>
-              <button
-                onClick={switchToDetectedCity}
-                className="flex-1 py-2 px-4 md:text-[16px] text-[12px] bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer"
-              >
-                Да, перейти
-              </button>
+  return (
+    <div onClick={(e) => e.stopPropagation()} className="absolute top-[150%] w-[220px] right-[-20px] flex justify-center z-[24]">
+      <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-xs mx-4">
+        <div className="p-3">
+          <div className="flex items-start gap-2">
+            <BsGeoAlt className="text-blue-600 text-lg mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm text-gray-800 mb-2">
+                Ваш город <span className="font-semibold text-blue-600">{getCityName(detectedCity)}</span><br/>
+                Перейти на него?
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={switchToDetectedCity}
+                  className="flex-1 py-1.5 px-3 text-sm bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+                >
+                  Да
+                </button>
+                <button
+                  onClick={declineCitySwitch}
+                  className="flex-1 py-1.5 px-3 text-sm border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  Нет
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    );
-  };
+    </div>
+  );
+};
 
   const renderCitySelect = () => {
      if(!openCity) return;
@@ -378,7 +379,6 @@ const Header = () => {
 
   return (
     <>
-      {renderCityPopup()}
       
       {
         openForm ? (
@@ -463,11 +463,12 @@ const Header = () => {
             <div className="lg:flex hidden"><Button name="Найти" height={40} size="default" onClick={handleSearch} /></div>
             <div className="lg:hidden flex"><Button name="Найти" height={35} size="default" onClick={handleSearch} /></div>
           </div>
-          <div className="flex lg:mt-[20px] hover:text-[var(--href-hover-color)] underline cursor-pointer text-[14px] lg:text-[18px] items-center gap-[6px]" onClick={() => setOpenCity(!openCity)}>
+          <div className="flex lg:mt-[20px] hover:text-[var(--href-hover-color)] relative underline cursor-pointer text-[14px] lg:text-[18px] items-center gap-[6px]" onClick={() => setOpenCity(!openCity)}>
             <div className="lg:flex hidden"><BsGeoAlt size={18} /></div>
             <div className="lg:hidden flex"><BsGeoAlt size={14} /></div> 
             {getCurrentCityName()}
             {isDetectingGPS && " (определяем...)"}
+            {renderCityPopup()}
           </div>
         </div>
       </div>
