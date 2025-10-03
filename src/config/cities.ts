@@ -503,15 +503,6 @@ export const CITY_CASES = {
     prepositional: 'о Ярославле',
     domain: 'yaroslavl',
   },
-  shatura: {
-    nominative: 'Шатура',
-    genitive: 'Шатуры',
-    dative: 'Шатуре',     // исправлено с "Ярославлю" на "Ярославле"
-    accusative: 'Шатуру',
-    instrumental: 'Шатурой',
-    prepositional: 'о Шатуре',
-    domain: 'shatura',
-  },
 } as const;
 
 
