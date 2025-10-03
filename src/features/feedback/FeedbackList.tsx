@@ -45,6 +45,7 @@ const ReviewItem = memo(({ review, products, getHrefWithCity }: {
         <li className="flex flex-col gap-[6px]" tabIndex={0} aria-label={`Отзыв от ${review.customer_name}, рейтинг ${review.rating} звезд`}>
             <div className="flex items-center gap-[6px]">
                 <div className="bg-gray-400 text-white flex uppercase justify-center items-center rounded-full overflow-hidden min-w-[35px] h-[35px] relative" aria-hidden="true">
+                    {review.images === "" ? review.customer_name[0] : null}
                     {
                         review.images ? (
                             <Image src={`${API_BASE_URL}/uploads/reviews/${review.images}`} alt={String(review.id)} fill className="object-cover" />
