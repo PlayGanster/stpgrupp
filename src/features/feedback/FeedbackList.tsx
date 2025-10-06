@@ -140,36 +140,19 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
             const now = Date.now();
             const cacheDuration = 10 * 60 * 1000;
 
-            if (product_id) {
-                const cachedDataReviewsProduct = localStorage.getItem(`cachedReviews${product_id}`);
-                const cacheTimestampReviewsProduct = localStorage.getItem(`reviewsCacheTimestamp${product_id}`);
-                
-                if (cachedDataReviewsProduct && cacheTimestampReviewsProduct && 
-                    (now - parseInt(cacheTimestampReviewsProduct)) < cacheDuration) {
-                    const reviewsData = JSON.parse(cachedDataReviewsProduct);
-                    setReviews(reviewsData);
-                    setLoading(false);
-                    return;
-                }
-
-                const reviewsData: Review[] | null = await getReviewByProduct(Number(product_id));
+            // ВСЕГДА загружаем все отзывы, независимо от того, на странице товара мы или нет
+            const cachedDataReviews = localStorage.getItem(`cachedReviews`);
+            const cacheTimestampReviews = localStorage.getItem(`reviewsCacheTimestamp`);
+            
+            if (cachedDataReviews && cacheTimestampReviews && 
+                (now - parseInt(cacheTimestampReviews)) < cacheDuration) {
+                const reviewsData = JSON.parse(cachedDataReviews);
                 setReviews(reviewsData);
-                localStorage.setItem(`cachedReviews${product_id}`, JSON.stringify(reviewsData));
-                localStorage.setItem(`reviewsCacheTimestamp${product_id}`, now.toString());
             } else {
-                const cachedDataReviews = localStorage.getItem(`cachedReviews`);
-                const cacheTimestampReviews = localStorage.getItem(`reviewsCacheTimestamp`);
-                
-                if (cachedDataReviews && cacheTimestampReviews && 
-                    (now - parseInt(cacheTimestampReviews)) < cacheDuration) {
-                    const reviewsData = JSON.parse(cachedDataReviews);
-                    setReviews(reviewsData);
-                } else {
-                    const reviewsData: Review[] | null = await getReviews();
-                    setReviews(reviewsData);
-                    localStorage.setItem(`cachedReviews`, JSON.stringify(reviewsData));
-                    localStorage.setItem(`reviewsCacheTimestamp` , now.toString());
-                }
+                const reviewsData: Review[] | null = await getReviews();
+                setReviews(reviewsData);
+                localStorage.setItem(`cachedReviews`, JSON.stringify(reviewsData));
+                localStorage.setItem(`reviewsCacheTimestamp` , now.toString());
             }
 
             const cachedData = localStorage.getItem(`cachedProducts`);
@@ -189,7 +172,7 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
         } finally {
             setLoading(false);
         }
-    }, [product_id]);
+    }, []); // Убрана зависимость от product_id
 
     useEffect(() => {
         fetchProduct();

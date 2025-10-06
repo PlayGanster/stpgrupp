@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { getProduct, Product } from "@/actions/products"
 import { useParams } from "next/navigation"
-import { getReviewByProduct, Review } from "@/actions/reviews"
+import { getReviewByProduct, getReviews, Review } from "@/actions/reviews" // Добавлен getReviews
 import { averageReviews } from "@/shared/utils/AverageReviews"
 import { declineReviews } from "@/shared/utils/DeclineReviews"
 import { getCategory, Category } from "@/actions/categories"
@@ -54,22 +54,28 @@ const RightItem = () => {
       const cachedProduct = localStorage.getItem(`cachedProduct${product_id}`);
       const cacheTimestamp = localStorage.getItem(`productCacheTimestamp${product_id}`);
       
-      // Параллельная загрузка отзывов и проверка кэша
-      const [reviewsData, cachedProductData] = await Promise.allSettled([
-        getReviewByProduct(Number(product_id)),
-        (cachedProduct && cacheTimestamp && (now - parseInt(cacheTimestamp)) < CACHE_DURATION) 
-          ? JSON.parse(cachedProduct) 
-          : null
-      ]);
+      // Загружаем ВСЕ отзывы вместо отзывов по товару
+      const cachedReviews = localStorage.getItem(`cachedReviews`);
+      const cacheTimestampReviews = localStorage.getItem(`reviewsCacheTimestamp`);
+      
+      if (cachedReviews && cacheTimestampReviews && (now - parseInt(cacheTimestampReviews)) < CACHE_DURATION) {
+        // Используем кэшированные отзывы
+        setReviews(JSON.parse(cachedReviews));
+      } else {
+        // Загружаем все отзывы
+        const reviewsData = await getReviews();
+        setReviews(reviewsData);
+        localStorage.setItem(`cachedReviews`, JSON.stringify(reviewsData));
+        localStorage.setItem(`reviewsCacheTimestamp`, now.toString());
+      }
 
-      setReviews(reviewsData.status === 'fulfilled' ? reviewsData.value : null);
-
-      if (cachedProductData.status === 'fulfilled' && cachedProductData.value) {
-        const productData = cachedProductData.value;
-        setProduct(productData);
+      // Проверяем есть ли актуальный кэш товара
+      if (cachedProduct && cacheTimestamp && (now - parseInt(cacheTimestamp)) < CACHE_DURATION) {
+        const cachedProductData = JSON.parse(cachedProduct);
+        setProduct(cachedProductData);
         
         // Загружаем категорию для кэшированного товара
-        const categoryData = await getCategory(Number(productData.category_id));
+        const categoryData = await getCategory(Number(cachedProductData.category_id));
         setCategory(categoryData);
         setLoading(false);
         return;

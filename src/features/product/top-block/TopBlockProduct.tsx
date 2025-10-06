@@ -2,7 +2,7 @@
 
 import { Category, getCategory } from "@/actions/categories";
 import { getProduct, Product } from "@/actions/products";
-import { getReviewByProduct, Review } from "@/actions/reviews";
+import { getReviewByProduct, getReviews, Review } from "@/actions/reviews"; // Добавлен getReviews
 import { averageReviews } from "@/shared/utils/AverageReviews";
 import { declineReviews } from "@/shared/utils/DeclineReviews";
 import Link from "next/link";
@@ -39,17 +39,26 @@ const TopBlockProduct = () => {
             setError(null);
             
             const now = Date.now();
+
+            // Загружаем ВСЕ отзывы вместо отзывов по товару
+            const cachedReviews = localStorage.getItem(`cachedReviews`);
+            const cacheTimestampReviews = localStorage.getItem(`reviewsCacheTimestamp`);
+            
+            if (cachedReviews && cacheTimestampReviews && (now - parseInt(cacheTimestampReviews)) < CACHE_DURATION) {
+                // Используем кэшированные отзывы
+                setReviews(JSON.parse(cachedReviews));
+            } else {
+                // Загружаем все отзывы
+                const reviewsData = await getReviews();
+                setReviews(reviewsData);
+                localStorage.setItem(`cachedReviews`, JSON.stringify(reviewsData));
+                localStorage.setItem(`reviewsCacheTimestamp`, now.toString());
+            }
+
+            // Проверяем есть ли актуальный кэш товара
             const cachedProduct = localStorage.getItem(`cachedProduct${product_id}`);
             const cacheTimestamp = localStorage.getItem(`productCacheTimestamp${product_id}`);
             
-            // Параллельная загрузка отзывов и проверка кэша
-            const [reviewsData] = await Promise.allSettled([
-                getReviewByProduct(Number(product_id))
-            ]);
-
-            setReviews(reviewsData.status === 'fulfilled' ? reviewsData.value : null);
-
-            // Проверяем есть ли актуальный кэш товара
             if (cachedProduct && cacheTimestamp && (now - parseInt(cacheTimestamp)) < CACHE_DURATION) {
                 const cachedProductData = JSON.parse(cachedProduct);
                 setProduct(cachedProductData);
@@ -61,19 +70,16 @@ const TopBlockProduct = () => {
                 return;
             }
 
-            // Если кэша нет или он устарел, загружаем все данные
-            const [productData] = await Promise.allSettled([
-                getProduct(Number(product_id))
-            ]);
+            // Если кэша товара нет или он устарел, загружаем данные товара
+            const productData = await getProduct(Number(product_id));
 
-            if (productData.status === 'fulfilled' && productData.value) {
-                const freshProduct = productData.value;
-                setProduct(freshProduct);
-                localStorage.setItem(`cachedProduct${product_id}`, JSON.stringify(freshProduct));
+            if (productData) {
+                setProduct(productData);
+                localStorage.setItem(`cachedProduct${product_id}`, JSON.stringify(productData));
                 localStorage.setItem(`productCacheTimestamp${product_id}`, now.toString());
                 
                 // Загружаем категорию для нового товара
-                const categoryData = await getCategory(Number(freshProduct.category_id));
+                const categoryData = await getCategory(Number(productData.category_id));
                 setCategory(categoryData);
             } else {
                 throw new Error('Не удалось загрузить товар');
