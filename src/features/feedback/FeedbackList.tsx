@@ -212,7 +212,7 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
 
         // Для бесконечной анимации - дублируем контент и используем CSS анимацию
         const duplicatedReviews = [...reviews, ...reviews];
-        const animationDuration = 15; // Фиксированная длительность 8 секунд
+        const animationDuration = 18; // Фиксированная длительность 8 секунд
 
         return (
             <div className="overflow-hidden h-[400px] relative">

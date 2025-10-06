@@ -147,16 +147,16 @@ export default function Home({ params }: { params: { city?: string } }) {
               
               {/* Преимущества с семантическим списком */}
               <ul aria-label="Преимущества компании" className="md:mt-[65px] mt-[24px] flex gap-[12px] md:flex-row flex-col">
-                <li className="bg-[white] flex lg:justify-center justify-start px-[15px] items-center lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] font-regular rounded-[20px] md:w-[200px] md:h-[60px] lg:w-[220px] lg:h-[70px] w-[180px] h-[45px] gap-[6px] leading-[1]">
+                <li className="bg-[white] flex lg:justify-center justify-start px-[15px] items-center lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] font-regular rounded-[20px] md:w-[210px] md:h-[60px] lg:w-[240px] lg:h-[70px] w-[180px] h-[45px] gap-[6px] leading-[1]">
                   <IoShieldCheckmarkOutline className="lg:w-[32px] lg:h-[32px] md:w-[26px] md:h-[26px] w-[22px] h-[22px]" aria-hidden="true" />
                   Работаем<br/>по договору
                 </li>
-                <li className="bg-[white] flex lg:justify-center justify-start px-[15px] items-center lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] font-regular rounded-[20px] md:w-[200px] md:h-[60px] lg:w-[220px] lg:h-[70px] w-[180px] h-[45px] gap-[6px] leading-[1]">
+                <li className="bg-[white] flex lg:justify-center justify-start px-[15px] items-center lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] font-regular rounded-[20px] md:w-[210px] md:h-[60px] lg:w-[240px] lg:h-[70px] w-[180px] h-[45px] gap-[6px] leading-[1]">
                   <LiaFileInvoiceDollarSolid className="lg:w-[32px] lg:h-[32px] md:w-[26px] md:h-[26px] w-[22px] h-[22px]" aria-hidden="true" />
-                  Расчет Нал/Без Нал<br/>
-                  С НДС и без НДС
+                  Безналичный расчет<br/>
+                  НДС / без НДС
                 </li>
-                <li className="bg-[white] flex lg:justify-center justify-start px-[15px] items-center lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] font-regular rounded-[20px] md:w-[200px] md:h-[60px] lg:w-[220px] lg:h-[70px] w-[180px] h-[45px] gap-[6px] leading-[1]">
+                <li className="bg-[white] flex lg:justify-center justify-start px-[15px] items-center lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] font-regular rounded-[20px] md:w-[210px] md:h-[60px] lg:w-[240px] lg:h-[70px] w-[180px] h-[45px] gap-[6px] leading-[1]">
                   <LiaFileContractSolid className="lg:w-[32px] lg:h-[32px] md:w-[26px] md:h-[26px] w-[22px] h-[22px]" aria-hidden="true" />
                   Электронный<br/>
                   Документооборот
