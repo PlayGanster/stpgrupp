@@ -166,7 +166,7 @@ export default function Home({ params }: { params: { city?: string } }) {
             
             <div className="w-full flex max-h-[454px] h-full justify-end relative">
               <Image 
-                className="lg:h-[400px] md:h-[240px] h-[360px] min-w-[520px] md:min-w-[420px] lg:min-w-[680px] w-auto absolute right-[-40px] bottom-[-120px] md:bottom-[-225px] lg:bottom-[-270px] z-0 lg:flex hidden" 
+                className="lg:h-[435px] md:h-[280px] h-[400px] min-w-[520px] md:min-w-[420px] lg:min-w-[660px] w-auto absolute right-[-20px] bottom-[-120px] md:bottom-[-205px] lg:bottom-[-255px] z-0 lg:flex hidden" 
                 src={Banner2} 
                 alt={`Аренда экскаваторов и погрузчиков ${cityPrepositional} - СТП Групп`} 
                 priority
