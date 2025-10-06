@@ -85,8 +85,8 @@ const LoadingSkeleton = memo(() => (
 LoadingSkeleton.displayName = "LoadingSkeleton";
 
 const ViewAllButton = memo(({ onClick }: { onClick: () => void }) => (
-    <div className="absolute flex justify-center items-center w-full h-[100px] left-0 
-                    bg-gradient-to-t from-white to-320% bottom-0 to-transparent from-650% shadow-[0px_-25px_50px_100px_rgba(255,255,255,0.9)] z-10">
+    <div className="absolute flex justify-center items-start w-full h-[73px] left-0 
+                    bg-gradient-to-t from-white to-320% bottom-0 to-transparent from-650% shadow-[0px_-10px_20px_30px_rgba(255,255,255,0.95)] z-10">
         <div className="md:flex hidden">
             <Button 
               name="Смотреть все" 
@@ -229,10 +229,10 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
 
         // Для бесконечной анимации - дублируем контент и используем CSS анимацию
         const duplicatedReviews = [...reviews, ...reviews];
-        const animationDuration = reviews.length * 3; // 3 секунды на каждый отзыв
+        const animationDuration = 8; // Фиксированная длительность 8 секунд
 
         return (
-            <div className="overflow-hidden h-[300px] relative">
+            <div className="overflow-hidden h-[400px] relative">
                 <div 
                     ref={containerRef}
                     className="flex flex-col gap-[16px] animate-scroll-reviews"
