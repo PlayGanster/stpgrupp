@@ -7,12 +7,44 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useEffect, useState, useCallback } from "react"
 import { IoIosArrowForward } from "react-icons/io"
-import { useCity } from '@/hooks/useCity' // Добавляем хук useCity
+import { useCity } from '@/hooks/useCity'
 import { incrementNewsView } from '@/actions/news';
 import { useNewsView } from "@/hooks/useNewsView"
 import { useNewsViews } from "@/hooks/useNewsViews"
 
 const CACHE_DURATION = 10 * 60 * 1000; // 10 минут
+
+// Компонент для безопасного отображения HTML
+const SafeHTML = ({ 
+  html, 
+  className = "" 
+}: { 
+  html: string; 
+  className?: string 
+}) => {
+  return (
+    <div 
+      className={className}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+};
+
+// Функция для проверки, содержит ли текст HTML теги
+const containsHTML = (text: string): boolean => {
+  return /<[a-z][\s\S]*>/i.test(text);
+};
+
+// Функция для форматирования обычного текста с переносами строк
+const formatPlainText = (text: string): string => {
+  if (!text) return '';
+  
+  const paragraphs = text.split('\n').filter(paragraph => paragraph.trim());
+  
+  if (paragraphs.length === 0) return '';
+  
+  return paragraphs.map(paragraph => `<p>${paragraph}</p>`).join('');
+};
 
 const NewsContent = () => {
     const [loading, setLoading] = useState(true);
@@ -20,7 +52,7 @@ const NewsContent = () => {
     const [error, setError] = useState<string | null>(null);
     const params = useParams();
     const news_id = params.id as string;
-    const { slug, isCityVersion } = useCity(); // Получаем данные о городе
+    const { slug, isCityVersion } = useCity();
     const hasViewed = useNewsView(Number(news_id));
     const { views, loading: viewsLoading } = useNewsViews(Number(news_id));
 
@@ -74,6 +106,21 @@ const NewsContent = () => {
         fetchNews();
     }, [fetchNews]);
 
+    // Обработка описания для правильного отображения
+    const processedDescription = useCallback(() => {
+        if (!news?.description) return '';
+        
+        const description = news.description.trim();
+        
+        // Если описание содержит HTML теги, используем как есть
+        if (containsHTML(description)) {
+            return description;
+        }
+        
+        // Если это обычный текст, форматируем его
+        return formatPlainText(description);
+    }, [news?.description]);
+
     // Формируем структурированные данные для новости
     const getStructuredData = () => {
         if (!news) return null;
@@ -82,7 +129,7 @@ const NewsContent = () => {
             "@context": "https://schema.org",
             "@type": "NewsArticle",
             "headline": news.name,
-            "description": news.description?.split('\n')[0] || news.name,
+            "description": news.description?.replace(/<[^>]*>/g, '').substring(0, 160) || news.name,
             "image": `${API_BASE_URL}/uploads/newss/${news.image}`,
             "datePublished": news.created_at || new Date().toISOString(),
             "dateModified": news.created_at || news.created_at || new Date().toISOString(),
@@ -98,7 +145,6 @@ const NewsContent = () => {
                     "url": "https://ваш-сайт.ru/logo.png"
                 }
             },
-            // Добавляем URL с учетом города
             "url": `${typeof window !== 'undefined' ? window.location.origin : ''}${getHrefWithCity(`/news/${news_id}`)}`
         };
     };
@@ -144,7 +190,7 @@ const NewsContent = () => {
                         ) : (
                             <>
                                 <Link 
-                                    href={getHrefWithCity("/")} // Используем функцию для ссылки
+                                    href={getHrefWithCity("/")}
                                     className="leading-[1] hover:text-[var(--orange-hover-color)]" 
                                     itemProp="item"
                                 >
@@ -153,7 +199,7 @@ const NewsContent = () => {
                                 </Link>
                                 <IoIosArrowForward size={12} aria-hidden="true" />
                                 <Link 
-                                    href={getHrefWithCity("/news")} // Используем функцию для ссылки
+                                    href={getHrefWithCity("/news")}
                                     className="leading-[1] hover:text-[var(--orange-hover-color)]" 
                                     itemProp="item"
                                 >
@@ -162,7 +208,7 @@ const NewsContent = () => {
                                 </Link>
                                 <IoIosArrowForward size={12} aria-hidden="true" />
                                 <Link 
-                                    href={getHrefWithCity(`/news/${news_id}`)} // Используем функцию для ссылки
+                                    href={getHrefWithCity(`/news/${news_id}`)}
                                     className="leading-[1] hover:text-[var(--orange-hover-color)]"
                                     itemProp="item"
                                     aria-current="page"
@@ -234,16 +280,10 @@ const NewsContent = () => {
                     <div className="mt-[20px] w-full h-[100px] bg-gray-200 rounded-[20px] animate-pulse" />
                 ) : (
                     <div 
-                        className="mt-[20px] text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)]"
+                        className="mt-[20px] text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] rich-text-content"
                         itemProp="articleBody"
                     >
-                        {news?.description?.split('\n').map((paragraph, index) => 
-                            paragraph.trim() && (
-                                <p key={index} className="mb-4">
-                                    {paragraph}
-                                </p>
-                            )
-                        )}
+                        <SafeHTML html={processedDescription()} />
                     </div>
                 )}
 
@@ -251,6 +291,76 @@ const NewsContent = () => {
                 <meta itemProp="author" content="СТП Групп" />
                 <meta itemProp="publisher" content="СТП Групп" />
             </section>
+
+            {/* Стили для форматированного текста */}
+            <style jsx>{`
+                .rich-text-content :global(h1) {
+                    font-size: 1.5em;
+                    font-weight: bold;
+                    margin: 1em 0 0.5em 0;
+                }
+                
+                .rich-text-content :global(h2) {
+                    font-size: 1.25em;
+                    font-weight: bold;
+                    margin: 1em 0 0.5em 0;
+                }
+                
+                .rich-text-content :global(h3) {
+                    font-size: 1.1em;
+                    font-weight: bold;
+                    margin: 1em 0 0.5em 0;
+                }
+                
+                .rich-text-content :global(p) {
+                    margin: 0 0 1em 0;
+                    line-height: 1.6;
+                }
+                
+                .rich-text-content :global(ul),
+                .rich-text-content :global(ol) {
+                    padding-left: 1.5em;
+                    margin: 1em 0;
+                }
+                
+                .rich-text-content :global(li) {
+                    margin-bottom: 0.5em;
+                    line-height: 1.6;
+                }
+                
+                .rich-text-content :global(blockquote) {
+                    border-left: 3px solid #ddd;
+                    padding-left: 1em;
+                    margin: 1em 0;
+                    font-style: italic;
+                    color: #666;
+                }
+                
+                .rich-text-content :global(strong) {
+                    font-weight: bold;
+                }
+                
+                .rich-text-content :global(em) {
+                    font-style: italic;
+                }
+                
+                .rich-text-content :global(u) {
+                    text-decoration: underline;
+                }
+                
+                .rich-text-content :global(s) {
+                    text-decoration: line-through;
+                }
+                
+                .rich-text-content :global(a) {
+                    color: #007bff;
+                    text-decoration: underline;
+                }
+                
+                .rich-text-content :global(a:hover) {
+                    color: #0056b3;
+                }
+            `}</style>
         </>
     );
 }

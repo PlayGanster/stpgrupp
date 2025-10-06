@@ -9,7 +9,19 @@ import { useEffect, useState } from "react"
 import { useCity } from '@/hooks/useCity'
 import { FaCalendarDays } from "react-icons/fa6"
 import { IoEye } from "react-icons/io5"
-import { getNews } from "@/actions/news" // Добавляем импорт getNews
+import { getNews } from "@/actions/news"
+
+// Функция для удаления HTML тегов из текста и замены переносов на пробелы
+const stripHTML = (html: string): string => {
+  if (!html) return '';
+  
+  // Простая замена HTML тегов и переносов
+  return html
+    .replace(/<[^>]*>/g, ' ') // Заменяем все HTML теги на пробелы
+    .replace(/\n/g, ' ') // Заменяем переносы строк на пробелы
+    .replace(/\s+/g, ' ') // Заменяем множественные пробелы на один
+    .trim(); // Убираем пробелы в начале и конце
+};
 
 const NewsList = () => {
     const [loading, setLoading] = useState(true);
@@ -70,14 +82,25 @@ const NewsList = () => {
         
         for (const newsItem of newsList) {
             try {
-                const freshNews = await getNews(newsItem.id, true); // noCache = true
+                const freshNews = await getNews(newsItem.id, true);
                 newViews[newsItem.id] = freshNews?.view || 0;
             } catch (error) {
-                newViews[newsItem.id] = newsItem.view; // fallback
+                newViews[newsItem.id] = newsItem.view;
             }
         }
         
         setActualViews(newViews);
+    };
+
+    // Функция для получения чистого текста описания (без HTML тегов)
+    const getCleanDescription = (description: string): string => {
+        if (!description) return '';
+        
+        // Удаляем HTML теги и заменяем переносы на пробелы
+        const cleanText = stripHTML(description);
+        
+        // Обрезаем текст до нужной длины
+        return truncateText(cleanText, 100);
     };
 
     useEffect(() => {
@@ -90,7 +113,7 @@ const NewsList = () => {
 
         const interval = setInterval(() => {
             updateActualViews(news);
-        }, 30000); // Обновляем каждые 30 секунд
+        }, 30000);
 
         return () => clearInterval(interval);
     }, [news]);
@@ -105,7 +128,6 @@ const NewsList = () => {
                 </>
             ) : (
                 news?.map((el, index) => {
-                    // Используем актуальные просмотры или данные из кэша
                     const viewsCount = actualViews[el.id] !== undefined ? actualViews[el.id] : el.view;
                     const publishedDate = new Date(el.created_at || Date.now()).toISOString();
                     
@@ -116,7 +138,6 @@ const NewsList = () => {
                             itemScope
                             itemType="https://schema.org/NewsArticle"
                         >
-                            {/* Микроразметка для новости */}
                             <script
                                 type="application/ld+json"
                                 dangerouslySetInnerHTML={{
@@ -124,7 +145,7 @@ const NewsList = () => {
                                         "@context": "https://schema.org",
                                         "@type": "NewsArticle",
                                         "headline": el.name,
-                                        "description": truncateText(el.description, 100),
+                                        "description": getCleanDescription(el.description),
                                         "datePublished": publishedDate,
                                         "dateModified": publishedDate,
                                         "image": `${API_BASE_URL}/uploads/newss/${el.image}`,
@@ -177,14 +198,14 @@ const NewsList = () => {
                                             className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] text-[var(--grey-text-color)] line-clamp-3"
                                             itemProp="description"
                                         >
-                                            {truncateText(el.description, 100)}
+                                            {getCleanDescription(el.description)}
                                         </p>
                                     </div>
                                     
                                     <div className="mt-[6px] flex justify-between">
                                         <div className="flex items-center text-[12px] text-[var(--grey-text-color)] gap-[4px]">
                                             <IoEye size={16} />
-                                            {viewsCount} {/* Актуальные просмотры */}
+                                            {viewsCount}
                                         </div>
                                         <div className="flex items-center text-[var(--grey-text-color)] text-[12px] gap-[4px]">
                                             <FaCalendarDays size={16} />

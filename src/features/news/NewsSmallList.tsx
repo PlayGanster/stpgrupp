@@ -11,6 +11,17 @@ import { FaCalendarDays } from "react-icons/fa6";
 
 const CACHE_DURATION = 10 * 60 * 1000; // 10 минут
 
+// Функция для удаления HTML тегов из текста и замены переносов на пробелы
+const stripHTML = (html: string): string => {
+  if (!html) return '';
+  
+  return html
+    .replace(/<[^>]*>/g, ' ') // Заменяем все HTML теги на пробелы
+    .replace(/\n/g, ' ') // Заменяем переносы строк на пробелы
+    .replace(/\s+/g, ' ') // Заменяем множественные пробелы на один
+    .trim(); // Убираем пробелы в начале и конце
+};
+
 const NewsSmallList = () => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(true);
@@ -85,8 +96,13 @@ const NewsSmallList = () => {
     }, []);
 
     const truncateText = useCallback((text: string, maxLength: number) => {
-        if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength) + '...';
+        if (!text) return '';
+        
+        // Очищаем текст от HTML тегов
+        const cleanText = stripHTML(text);
+        
+        if (cleanText.length <= maxLength) return cleanText;
+        return cleanText.substring(0, maxLength) + '...';
     }, []);
 
     // Добавляем структурированные данные для новостей
@@ -102,7 +118,7 @@ const NewsSmallList = () => {
                 "item": {
                     "@type": "NewsArticle",
                     "headline": item.name,
-                    "description": item.description,
+                    "description": stripHTML(item.description),
                     "image": `${API_BASE_URL}/uploads/newss/${item.image}`,
                     "url": `${typeof window !== 'undefined' ? window.location.origin : ''}${getHrefWithCity(`/news/${item.id}`)}`,
                     "datePublished": item.created_at,
@@ -125,11 +141,15 @@ const NewsSmallList = () => {
     ), []);
 
     const renderFullRead = (description: string) => {
-        if(description.length > 100) {
+        if (!description) return null;
+        
+        const cleanText = stripHTML(description);
+        if(cleanText.length > 100) {
             return (
                 <span className="underline font-black ml-[4px]">Читать полностью</span>
             )
         }
+        return null;
     }
 
     const NewsItems = useMemo(() => (
