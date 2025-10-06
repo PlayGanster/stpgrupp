@@ -1,7 +1,7 @@
 "use client"
 
 import Button from "@/shared/ui/button/Button";
-import { useEffect, useState, useCallback, memo } from "react";
+import { useEffect, useState, useCallback, memo, useRef } from "react";
 import { FaStar } from "react-icons/fa";
 import FeedbackPopup from "./FeedbackPopup";
 import { useParams } from "next/navigation";
@@ -42,7 +42,7 @@ const ReviewItem = memo(({ review, products, getHrefWithCity }: {
     const productName = products?.find(product => product.id === review.product_id)?.name;
 
     return (
-        <li className="flex flex-col gap-[6px]" tabIndex={0} aria-label={`Отзыв от ${review.customer_name}, рейтинг ${review.rating} звезд`}>
+        <li className="flex flex-col gap-[6px] min-h-[120px] flex-shrink-0" tabIndex={0} aria-label={`Отзыв от ${review.customer_name}, рейтинг ${review.rating} звезд`}>
             <div className="flex items-center gap-[6px]">
                 <div className="bg-gray-400 text-white flex uppercase justify-center items-center rounded-full overflow-hidden min-w-[35px] h-[35px] relative" aria-hidden="true">
                     {review.images === "" ? review.customer_name[0] : null}
@@ -86,7 +86,7 @@ LoadingSkeleton.displayName = "LoadingSkeleton";
 
 const ViewAllButton = memo(({ onClick }: { onClick: () => void }) => (
     <div className="absolute flex justify-center items-center w-full h-[100px] left-0 
-                    bg-gradient-to-t from-white to-320% bottom-0 to-transparent from-650% shadow-[0px_-25px_50px_100px_rgba(255,255,255,0.9)]">
+                    bg-gradient-to-t from-white to-320% bottom-0 to-transparent from-650% shadow-[0px_-25px_50px_100px_rgba(255,255,255,0.9)] z-10">
         <div className="md:flex hidden">
             <Button 
               name="Смотреть все" 
@@ -119,6 +119,7 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
     const [products, setProducts] = useState<Product[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [reviews, setReviews] = useState<Review[] | null>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const params = useParams();
     const product_id = params.id as string;
     const { slug, isCityVersion } = useCity();
@@ -145,7 +146,8 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
                 
                 if (cachedDataReviewsProduct && cacheTimestampReviewsProduct && 
                     (now - parseInt(cacheTimestampReviewsProduct)) < cacheDuration) {
-                    setReviews(JSON.parse(cachedDataReviewsProduct));
+                    const reviewsData = JSON.parse(cachedDataReviewsProduct);
+                    setReviews(reviewsData);
                     setLoading(false);
                     return;
                 }
@@ -160,12 +162,13 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
                 
                 if (cachedDataReviews && cacheTimestampReviews && 
                     (now - parseInt(cacheTimestampReviews)) < cacheDuration) {
-                    setReviews(JSON.parse(cachedDataReviews));
+                    const reviewsData = JSON.parse(cachedDataReviews);
+                    setReviews(reviewsData);
                 } else {
                     const reviewsData: Review[] | null = await getReviews();
                     setReviews(reviewsData);
                     localStorage.setItem(`cachedReviews`, JSON.stringify(reviewsData));
-                    localStorage.setItem(`reviewsCacheTimestamp`, now.toString());
+                    localStorage.setItem(`reviewsCacheTimestamp` , now.toString());
                 }
             }
 
@@ -209,29 +212,68 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
             );
         }
 
-        return (
-          <ul className="flex flex-col gap-[16px]" aria-label="Список отзывов">
-            {reviews.map((review, index) => {
-                if (view === "all" || index < (view as number)) {
-                    return (
+        if (view === "all" || reviews.length < 4) {
+            return (
+                <ul className="flex flex-col gap-[16px]" aria-label="Список отзывов">
+                    {reviews.map((review, index) => (
                         <ReviewItem 
                             key={review.id || index} 
                             review={review} 
                             products={products || undefined}
                             getHrefWithCity={getHrefWithCity}
                         />
-                    );
-                }
-                return null;
-            }).filter(Boolean)}
-          </ul>
+                    ))}
+                </ul>
+            );
+        }
+
+        // Для бесконечной анимации - дублируем контент и используем CSS анимацию
+        const duplicatedReviews = [...reviews, ...reviews];
+        const animationDuration = reviews.length * 3; // 3 секунды на каждый отзыв
+
+        return (
+            <div className="overflow-hidden h-[300px] relative">
+                <div 
+                    ref={containerRef}
+                    className="flex flex-col gap-[16px] animate-scroll-reviews"
+                    style={{ 
+                        animation: `scrollReviews ${animationDuration}s linear infinite` 
+                    }}
+                >
+                    {duplicatedReviews.map((review, index) => (
+                        <ReviewItem 
+                            key={`${review.id}-${index}`} 
+                            review={review} 
+                            products={products || undefined}
+                            getHrefWithCity={getHrefWithCity}
+                        />
+                    ))}
+                </div>
+                
+                <style jsx>{`
+                    @keyframes scrollReviews {
+                        0% {
+                            transform: translateY(0);
+                        }
+                        100% {
+                            transform: translateY(-50%);
+                        }
+                    }
+                    .animate-scroll-reviews {
+                        animation: scrollReviews ${animationDuration}s linear infinite;
+                    }
+                `}</style>
+            </div>
         );
     }, [reviews, view, products, getHrefWithCity]);
 
     const containerHeightClass = !reviews || reviews.length === 0 || location.pathname.includes("catalog") ? "h-auto" : "lg:h-[485px] md:h-[460px]";
 
     return (
-        <section aria-labelledby="feedback-list-heading" className={`relative ${containerHeightClass}`}>
+        <section 
+            aria-labelledby="feedback-list-heading" 
+            className={`relative ${containerHeightClass}`}
+        >
             {
                 name ? (
                     <h2 id="feedback-list-heading" className="font-black text-[length:var(--size-lg-large-text)] md:text-[length:var(--size-md-large-text)] text-[length:var(--size-mobile-large-text)] mb-3">
@@ -258,7 +300,7 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
                         </p>
                     </div>
 
-                    <div className="relative max-h-[400px] md:max-h-[300px]">
+                    <div className="relative">
                         {renderReviews()}
                     </div>
                     
