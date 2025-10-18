@@ -63,16 +63,19 @@
   --size-lg-default-text: 16px;
   --size-lg-large-text: 24px;
   --size-lg-small-text: 14px;
+  --size-lg-smaller-text: 12px;
   --size-md-heading-text: 24px;
   --size-md-banner-text: 42px;
   --size-md-default-text: 14px;
   --size-md-large-text: 20px;
   --size-md-small-text: 12px;
+  --size-md-smaller-text: 10px;
   --size-mobile-heading-text: 18px;
   --size-mobile-banner-text: 24px;
   --size-mobile-default-text: 12px;
   --size-mobile-large-text: 16px;
   --size-mobile-small-text: 10px;
+  --size-mobile-smaller-text: 10px;
 }
 
 * {

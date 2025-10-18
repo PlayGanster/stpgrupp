@@ -7,12 +7,14 @@ interface CheckboxType {
     value: boolean;
     setValue: React.Dispatch<React.SetStateAction<boolean>>;
     name: string;
+    size?: string;
 }
 
 const Checkbox: React.FC<CheckboxType> = memo(({
     value,
     setValue,
-    name
+    name,
+    size="default"
 }) => {
     const handleClick = useCallback(() => {
         setValue(prev => !prev);
@@ -23,7 +25,7 @@ const Checkbox: React.FC<CheckboxType> = memo(({
             <div className="w-[18px] h-[18px] flex justify-center items-center bg-white rounded-[4px]">
                 {value && <FaCheck size={12} />}
             </div>
-            <p className="lg:text-[length:var(--size-lg-small-text)] md:text-[length:var(--size-md-small-text)] text-[length:var(--size-mobile-small-text)]">
+            <p className={`${size === "default" ? "lg:text-[length:var(--size-lg-small-text)] md:text-[length:var(--size-md-small-text)] text-[length:var(--size-mobile-small-text)]" : ""} ${size === "smaller" ? "lg:text-[length:var(--size-lg-smaller-text)] md:text-[length:var(--size-md-smaller-text)] text-[length:var(--size-mobile-smaller-text)]" : ""}`}>
                 {name}
             </p>
         </div>

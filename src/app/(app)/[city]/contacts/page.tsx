@@ -9,6 +9,7 @@ import {
   getSeoCityTitle,
   getSeoCityDescription,
 } from '@/shared/utils/cityCases';
+import ContactForm from "@/features/form/ContactForm";
 
 // Генерируем метаданные с учетом города
 export async function generateMetadata({ params }: { params: { city?: string } }): Promise<Metadata> {
@@ -60,7 +61,7 @@ const getCityContacts = (citySlug: CitySlug) => {
   // Здесь можно получать контакты для конкретного города из API/базы
   // Пока заглушка с возможностью расширения под разные города
   const contactsByCity: Partial<Record<CitySlug, any>> = {
-    vsia_rossia: {
+    moscow: {
       phone: "+7 930 333 4046",
       email: "stp.grupp@mail.ru",
       address: `Курганская область, Белозерский район, село Белозерское, ул. Советская, д. 32, кв. 12`,
@@ -70,7 +71,7 @@ const getCityContacts = (citySlug: CitySlug) => {
     // Можно добавить контакты для других городов
   };
 
-  return contactsByCity[citySlug] || contactsByCity.vsia_rossia!;
+  return contactsByCity[citySlug] || contactsByCity.moscow!;
 };
 
 export default function ContactsPage({ params }: { params: { city?: string } }) {
@@ -173,110 +174,128 @@ export default function ContactsPage({ params }: { params: { city?: string } }) 
           Контакты {seoCityTitle}
         </h1>
         
-        <section className="mt-8" itemScope itemType="https://schema.org/ContactPoint">
-          <h2 className="text-[18px] md:text-[21px] font-semibold">Контактная информация</h2>
-          <div className="mt-4 space-y-3">
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">Телефон:</span> 
-              <a href={`tel:${contactInfo.phone.replace(/[^0-9+]/g, '')}`} 
-                 className="hover:text-[var(--orange-hover-color)] ml-2"
-                 itemProp="telephone">
-                {contactInfo.phone}
-              </a>
-            </p>
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">Эл. почта:</span> 
-              <a href={`mailto:${contactInfo.email}`} 
-                 className="hover:text-[var(--orange-hover-color)] ml-2"
-                 itemProp="email">
-                {contactInfo.email}
-              </a>
-            </p>
-          </div>
-        </section>
+        {/* Основной контент с картой справа */}
+        <div className="mt-[12px] flex flex-col lg:flex-row gap-8">
+          {/* Левая часть - текстовая информация (40%) */}
+          <div className="lg:w-2/5 ">
+            <section itemScope itemType="https://schema.org/ContactPoint">
+              <h2 className="text-[18px] md:text-[21px] font-semibold">Контактная информация</h2>
+              <div className="mt-4 space-y-3">
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">Телефон:</span> 
+                  <a href={`tel:${contactInfo.phone.replace(/[^0-9+]/g, '')}`} 
+                     className="hover:text-[var(--orange-hover-color)] ml-2"
+                     itemProp="telephone">
+                    {contactInfo.phone}
+                  </a>
+                </p>
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">Эл. почта:</span> 
+                  <a href={`mailto:${contactInfo.email}`} 
+                     className="hover:text-[var(--orange-hover-color)] ml-2"
+                     itemProp="email">
+                    {contactInfo.email}
+                  </a>
+                </p>
+              </div>
+            </section>
 
-        <section className="mt-8">
-          <h2 className="text-[18px] md:text-[21px] font-semibold">Социальные сети</h2>
-          <div className="mt-4 space-y-3">
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">WhatsApp:</span> 
-              <a href={`https://wa.me/${contactInfo.social.whatsapp.replace(/[^0-9+]/g, '')}`} 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 className="hover:text-[var(--orange-hover-color)] ml-2">
-                {contactInfo.social.whatsapp}
-              </a>
-            </p>
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">Telegram:</span> 
-              <a href={`https://t.me/${contactInfo.social.telegram.replace('@', '')}`} 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 className="hover:text-[var(--orange-hover-color)] ml-2">
-                {contactInfo.social.telegram}
-              </a>
-            </p>
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">ВКонтакте:</span> 
-              <a href={`https://vk.com/${contactInfo.social.vk}`} 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 className="hover:text-[var(--orange-hover-color)] ml-2">
-                vk.com/{contactInfo.social.vk}
-              </a>
-            </p>
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">YouTube:</span> 
-              <a href={`https://youtube.com/${contactInfo.social.youtube}`} 
-                 target="_blank" 
-                 rel="noopener noreferrer"
-                 className="hover:text-[var(--orange-hover-color)] ml-2">
-                youtube.com/{contactInfo.social.youtube}
-              </a>
-            </p>
-          </div>
-        </section>
+            <section className="mt-[20px]">
+              <h2 className="text-[18px] md:text-[21px] font-semibold">Социальные сети</h2>
+              <div className="mt-4 space-y-3">
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">WhatsApp:</span> 
+                  <a href={`https://wa.me/${contactInfo.social.whatsapp.replace(/[^0-9+]/g, '')}`} 
+                     target="_blank" 
+                     rel="noopener noreferrer"
+                     className="hover:text-[var(--orange-hover-color)] ml-2">
+                    {contactInfo.social.whatsapp}
+                  </a>
+                </p>
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">Telegram:</span> 
+                  <a href={`https://t.me/${contactInfo.social.telegram.replace('@', '')}`} 
+                     target="_blank" 
+                     rel="noopener noreferrer"
+                     className="hover:text-[var(--orange-hover-color)] ml-2">
+                    {contactInfo.social.telegram}
+                  </a>
+                </p>
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">ВКонтакте:</span> 
+                  <a href={`https://vk.com/${contactInfo.social.vk}`} 
+                     target="_blank" 
+                     rel="noopener noreferrer"
+                     className="hover:text-[var(--orange-hover-color)] ml-2">
+                    vk.com/{contactInfo.social.vk}
+                  </a>
+                </p>
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">YouTube:</span> 
+                  <a href={`https://youtube.com/${contactInfo.social.youtube}`} 
+                     target="_blank" 
+                     rel="noopener noreferrer"
+                     className="hover:text-[var(--orange-hover-color)] ml-2">
+                    youtube.com/{contactInfo.social.youtube}
+                  </a>
+                </p>
+              </div>
+            </section>
 
-        <section className="mt-8" itemScope itemType="https://schema.org/PostalAddress">
-          <h2 className="text-[18px] md:text-[21px] font-semibold">Адрес</h2>
-          <div className="mt-4 space-y-3">
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">Адрес: </span> 
-              <span itemProp="streetAddress">{contactInfo.address}</span>
-            </p>
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">График работы: </span> 
-              <span itemProp="openingHours">{contactInfo.workHours}</span>
-            </p>
-          </div>
-          <ContactsMap coordinates={contactInfo.coordinates} address={contactInfo.address} />
-        </section>
+            <section className="mt-[20px]" itemScope itemType="https://schema.org/PostalAddress">
+              <h2 className="text-[18px] md:text-[21px] font-semibold">Адрес</h2>
+              <div className="mt-4 space-y-3">
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">Адрес: </span> 
+                  <span itemProp="streetAddress">{contactInfo.address}</span>
+                </p>
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">График работы: </span> 
+                  <span itemProp="openingHours">{contactInfo.workHours}</span>
+                </p>
+              </div>
+            </section>
 
-        <section className="mt-8" itemScope itemType="https://schema.org/Organization">
-          <h2 className="text-[18px] md:text-[21px] font-semibold">Юридическая информация</h2>
-          <div className="mt-4 space-y-3">
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">Название: </span> 
-              <span itemProp="name">{contactInfo.company.name}</span>
-            </p>
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">ИНН: </span> 
-              <span itemProp="taxID">{contactInfo.company.inn}</span>
-            </p>
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">ОГРН: </span> 
-              <span itemProp="identifier">{contactInfo.company.ogrn}</span>
-            </p>
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">КПП: </span> 
-              {contactInfo.company.kpp}
-            </p>
-            <p className="font-[500] text-[14px] md:text-[16px]">
-              <span className="text-[var(--grey-text-color)]">Юридический адрес: </span> 
-              {contactInfo.company.legalAddress}
-            </p>
+            <section className="mt-[20px]" itemScope itemType="https://schema.org/Organization">
+              <h2 className="text-[18px] md:text-[21px] font-semibold">Юридическая информация</h2>
+              <div className="mt-4 space-y-3">
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">Название: </span> 
+                  <span itemProp="name">{contactInfo.company.name}</span>
+                </p>
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">ИНН: </span> 
+                  <span itemProp="taxID">{contactInfo.company.inn}</span>
+                </p>
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">ОГРН: </span> 
+                  <span itemProp="identifier">{contactInfo.company.ogrn}</span>
+                </p>
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">КПП: </span> 
+                  {contactInfo.company.kpp}
+                </p>
+                <p className="font-[500] text-[14px] md:text-[16px]">
+                  <span className="text-[var(--grey-text-color)]">Юридический адрес: </span> 
+                  {contactInfo.company.legalAddress}
+                </p>
+              </div>
+            </section>
           </div>
-        </section>
+
+          {/* Правая часть - карта и форма (60%) */}
+          <div className="lg:w-3/5 flex flex-col">
+            {/* Карта занимает доступное пространство */}
+            <div className="flex-1">
+              <ContactsMap coordinates={contactInfo.coordinates} address={contactInfo.address} />
+            </div>
+            
+            {/* Форма под картой */}
+            <div className="mt-8  px-[30px] py-[30px] bg-[#F2F1EF] rounded-[40px]">
+              <ContactForm />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

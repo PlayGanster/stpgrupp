@@ -5,6 +5,8 @@ import { useEffect, useRef, useCallback } from 'react'
 interface ContactsMapProps {
   coordinates: [number, number];
   address: string;
+  zoom?: number;
+  height?: number;
 }
 
 declare global {
@@ -13,7 +15,7 @@ declare global {
   }
 }
 
-export default function ContactsMap({ coordinates, address }: ContactsMapProps) {
+export default function ContactsMap({ coordinates, address, zoom=17, height=400 }: ContactsMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<any>(null)
   const scriptLoadedRef = useRef(false)
@@ -29,7 +31,7 @@ export default function ContactsMap({ coordinates, address }: ContactsMapProps) 
 
       const map = new window.ymaps.Map(mapRef.current, {
         center: coordinates,
-        zoom: 17,
+        zoom: zoom,
         controls: ['zoomControl']
       })
 
@@ -101,7 +103,7 @@ export default function ContactsMap({ coordinates, address }: ContactsMapProps) 
   }, [])
 
   return (
-    <div className="mt-[12px] h-[400px] rounded-[20px] overflow-hidden" 
+    <div className={`mt-[12px] ${`h-[${height}px]`} rounded-[20px] overflow-hidden`} 
          aria-label="Карта с местоположением офиса">
       <div ref={mapRef} style={{ width: '100%', height: '100%' }} />
     </div>

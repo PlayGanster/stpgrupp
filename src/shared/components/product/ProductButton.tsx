@@ -25,12 +25,12 @@ const ProductButton = () => {
                 ) : null
             }
             <div className="flex flex-row md:flex-col gap-[6px]">
-                <button className="w-full min-h-[35px] py-[8px] md:min-h-[50px] flex justify-center items-center bg-[var(--blue-color)] text-white text-[length:var(--size-mobile-default-text)] rounded-[5px] cursor-pointer md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] font-semibold flex-col gap-[4px]" onClick={() => setOpenModal(true)}>
+                <button className="w-full min-h-[35px] py-[8px] md:min-h-[50px] flex justify-center items-center  text-white text-[length:var(--size-mobile-default-text)] rounded-[5px] cursor-pointer md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] font-semibold flex-col gap-[4px]" style={{ background: 'linear-gradient(90deg, #0dccff 0%, #4760ff 100%)' }} onClick={() => setOpenModal(true)}>
                     <span>Позвонить</span>
                     <span className="font-normal md:block hidden">8 999 333 22 11</span>
                 </button>
                 <Link href="https://wa.me/89630081446" className="w-full" target="_blank">
-                    <button className="w-full min-h-[35px] md:min-h-[50px] py-[8px] flex justify-center items-center bg-[var(--green-text-color)] text-white text-[length:var(--size-mobile-default-text)] rounded-[5px] cursor-pointer md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] font-semibold flex-col gap-[4px]">
+                    <button className="w-full min-h-[35px] md:min-h-[50px] py-[8px] flex justify-center items-center  text-white text-[length:var(--size-mobile-default-text)] rounded-[5px] cursor-pointer md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] font-semibold flex-col gap-[4px]"  style={{ background: 'linear-gradient(90deg, #43ea80 0%, #38f8d4 100%)' }}>
                         <span>Написать в WhatsApp</span>
                         <span className="font-normal md:block hidden">Отвечает в течении часа</span>
                     </button>

@@ -5,7 +5,7 @@ import { IconType } from 'react-icons'
 interface ButtonType {
     icon?: IconType;
     name?: string | React.ReactNode;
-    color?: "blue" | "green" | "red" | "gray" | "light-gray" | "red";
+    color?: "blue" | "green" | "red" | "gray" | "light-gray";
     onClick?: any;
     href?: string;
     size?: "small" | "default" | "no-name" | "large";
@@ -29,15 +29,15 @@ const Button: React.FC<ButtonType> = ({
 }) => {
     const styleColor = () => {
         if(color === "blue") { 
-            return "bg-[var(--blue-color)] hover:bg-[#008aed]"; 
+            return "bg-gradient-to-r from-[#0dccff] to-[#4760ff] hover:from-[#00b8f5] hover:to-[#3a50e5]"; 
         }else if(color === "green") {
-             return "bg-[var(--green-color)] hover:bg-[#00B253]"; 
+             return "bg-gradient-to-r from-[#43ea80] to-[#38f8d4] hover:from-[#38d870] hover:to-[#2de0c0]"; 
         }else if(color === "red") {
-            return `bg-[#FF4052]`; 
+            return "bg-gradient-to-r from-[#fc0077] to-[#ff7275] hover:from-[#e0006a] hover:to-[#e66568]"; 
         }else if(color === "gray") {
-            return `bg-[#707070]`; 
+            return "bg-[#707070] hover:bg-[#5a5a5a]"; 
         }else if(color === "light-gray") {
-            return `bg-[#F2F1EF] text-[black!important]`; 
+            return "bg-[#F2F1EF] text-[black!important] hover:bg-[#e5e4e2]"; 
         }
     }
 
@@ -74,15 +74,15 @@ const Button: React.FC<ButtonType> = ({
 
     if(href !== undefined) {
         return (
-            <Link href="href">
-                <button className={`button-default ${styleWeight()} ${styleWidth()} ${styleColor()} ${styleHeight()} ${stylePadding()} ${styleSize()}`}>
+            <Link href={href}>
+                <button className={`button-default ${styleWeight()} ${styleWidth()} ${styleColor()} ${styleHeight()} ${stylePadding()} ${styleSize()} transition-all duration-200 text-white`}>
                     {Icon ? <Icon className="min-w-[16px]" size={styleIcon()} /> : null} {name}
                 </button>
             </Link>
         )
     }
     return (
-        <button onClick={onClick} className={`button-default ${styleWeight()} ${styleWidth()} ${styleColor()} ${styleHeight()} ${stylePadding()} ${styleSize()}`}>
+        <button onClick={onClick} className={`button-default ${styleWeight()} ${styleWidth()} ${styleColor()} ${styleHeight()} ${stylePadding()} ${styleSize()} transition-all duration-200 text-white`}>
             {Icon ? <Icon className="min-w-[16px]" size={styleIcon()} /> : null} {name}
         </button>
     )

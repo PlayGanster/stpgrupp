@@ -4,7 +4,7 @@ import Button from '@/shared/ui/button/Button';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
-import { FaPhone } from 'react-icons/fa6';
+import { FaPhone, FaTelegram } from 'react-icons/fa6';
 import { RxCross2, RxHamburgerMenu } from 'react-icons/rx';
 import LogoImage from "@/assets/stpgrupplogo.png"
 import LogoImageWhite from "@/assets/logo-white.png"
@@ -267,43 +267,41 @@ const Header = () => {
   }
 
   // Рендер всплывающего уведомления о смене города
-  // Рендер всплывающего уведомления о смене города
-// Рендер всплывающего уведомления о смене города
-const renderCityPopup = () => {
-  if (!showCityPopup) return null;
+  const renderCityPopup = () => {
+    if (!showCityPopup) return null;
 
-  return (
-    <div onClick={(e) => e.stopPropagation()} className="absolute top-[150%] w-[220px] right-[-20px] flex justify-center z-[24]">
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-xs mx-4">
-        <div className="p-3">
-          <div className="flex items-start gap-2">
-            <BsGeoAlt className="text-blue-600 text-lg mt-0.5 flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm text-gray-800 mb-2">
-                Ваш город <span className="font-semibold text-blue-600">{getCityName(detectedCity)}</span><br/>
-                Перейти на него?
-              </p>
-              <div className="flex gap-2">
-                <button
-                  onClick={switchToDetectedCity}
-                  className="flex-1 py-1.5 px-3 text-sm bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer"
-                >
-                  Да
-                </button>
-                <button
-                  onClick={declineCitySwitch}
-                  className="flex-1 py-1.5 px-3 text-sm border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  Нет
-                </button>
+    return (
+      <div onClick={(e) => e.stopPropagation()} className="absolute top-[150%] w-[220px] right-[-20px] flex justify-center z-[24]">
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 max-w-xs mx-4">
+          <div className="p-3">
+            <div className="flex items-start gap-2">
+              <BsGeoAlt className="text-blue-600 text-lg mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-gray-800 mb-2">
+                  Ваш город <span className="font-semibold text-blue-600">{getCityName(detectedCity)}</span><br/>
+                  Перейти на него?
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={switchToDetectedCity}
+                    className="flex-1 py-1.5 px-3 text-sm bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors cursor-pointer"
+                  >
+                    Да
+                  </button>
+                  <button
+                    onClick={declineCitySwitch}
+                    className="flex-1 py-1.5 px-3 text-sm border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    Нет
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
 
   const renderCitySelect = () => {
      if(!openCity) return;
@@ -393,7 +391,7 @@ const renderCityPopup = () => {
         ) : null
       }
       <div className="wrapper bg-[var(--bg-grey-color)] z-50 fixed w-[100dvw]">
-        <div className="container h-[45px] justify-between flex items-center gap-[20px]">
+        <div className="container h-[45px] justify-between flex items-center gap-[20px] relative">
           {
             logoIsVisible ? (
               <div className='flex gap-[20px] items-center'>
@@ -430,13 +428,51 @@ const renderCityPopup = () => {
               </ul>
             )
           }
-          <div className="flex items-center gap-[12px]">
-            <div className="lg:flex hidden"><Button onClick={() => setOpenForm(!openForm)} name="Позвонить по телефону" icon={FaPhone} height={35} size="default" padding="normal" /></div>
-            <div className="lg:flex hidden"><Link target='_blank' href="https://wa.me/89630081446"><Button name="Написать в WhatsApp" color="green" icon={FaWhatsapp} height={35} size="default" padding="normal" /></Link></div>
-            <div className="md:flex hidden lg:hidden"><Button onClick={() => setOpenForm(!openForm)} name="Позвонить по телефону" icon={FaPhone} height={35} size="small" padding="normal" /></div>
-            <div className="md:flex hidden lg:hidden"><Link target='_blank' href="https://wa.me/89630081446"><Button name="Написать в WhatsApp" color="green" icon={FaWhatsapp} height={35} size="small" padding="normal" /></Link></div>
-            <div className="md:hidden flex lg:hidden"><Button onClick={() => setOpenForm(!openForm)} icon={FaPhone} height={35} size="no-name" padding="small" /></div>
-            <div className="md:hidden flex lg:hidden"><Link target='_blank' href="https://wa.me/89630081446"><Button color="green" icon={FaWhatsapp} height={35} size="no-name" padding="small" /></Link></div>
+          
+          {/* Почта в центре с адаптацией */}
+          <div className="absolute left-1/2 transform -translate-x-1/2 hidden lg:flex">
+            <a href="mailto:stp.grupp@mail.ru" className="text-white text-[14px] hover:text-[var(--href-hover-color)] transition-colors whitespace-nowrap">
+              stp.grupp@mail.ru
+            </a>
+          </div>
+
+          <div className="flex items-center gap-[8px] ml-auto">
+            {/* Кнопка звонка в красном цвете */}
+            <div className="lg:flex hidden"><Button onClick={() => setOpenForm(!openForm)} name="Позвонить по телефону" icon={FaPhone} color="red" height={35} size="default" padding="normal" /></div>
+            
+            {/* Кнопки мессенджеров без надписей */}
+            <div className="lg:flex hidden"><Link target='_blank' href="https://wa.me/89630081446"><Button color="green" icon={FaWhatsapp} height={35} size="no-name" padding="small" /></Link></div>
+            <div className="lg:flex hidden"><Link target='_blank' href="https://t.me/your_telegram"><Button color="blue" icon={FaTelegram} height={35} size="no-name" padding="small" /></Link></div>
+            
+            {/* Мобильные версии */}
+            <div className="md:flex hidden lg:hidden">
+              <Button onClick={() => setOpenForm(!openForm)} name="Позвонить" icon={FaPhone} color="red" height={35} size="small" padding="small" />
+            </div>
+            <div className="md:flex hidden lg:hidden">
+              <Link target='_blank' href="https://wa.me/89630081446">
+                <Button color="green" icon={FaWhatsapp} height={35} size="no-name" padding="small" />
+              </Link>
+            </div>
+            <div className="md:flex hidden lg:hidden">
+              <Link target='_blank' href="https://t.me/your_telegram">
+                <Button color="blue" icon={FaTelegram} height={35} size="no-name" padding="small" />
+              </Link>
+            </div>
+            
+            {/* Маленькие экраны - только иконки */}
+            <div className="md:hidden flex">
+              <Button onClick={() => setOpenForm(!openForm)} icon={FaPhone} color="red" height={35} size="no-name" padding="small" />
+            </div>
+            <div className="md:hidden flex">
+              <Link target='_blank' href="https://wa.me/89630081446">
+                <Button color="green" icon={FaWhatsapp} height={35} size="no-name" padding="small" />
+              </Link>
+            </div>
+            <div className="md:hidden flex">
+              <Link target='_blank' href="https://t.me/your_telegram">
+                <Button color="blue" icon={FaTelegram} height={35} size="no-name" padding="small" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -492,6 +528,12 @@ const renderCityPopup = () => {
       {
         openBurger ? (
           <div className=" w-[100dvw] h-full top-[45px] flex bg-[var(--bg-grey-color)] fixed z-50  md:hidden items-center justify-center">
+            {/* Почта в мобильном меню */}
+            <div className="absolute top-6">
+              <a href="mailto:stp.grupp@mail.ru" className="text-white text-[16px] hover:text-[var(--href-hover-color)] transition-colors">
+                stp.grupp@mail.ru
+              </a>
+            </div>
             <ul className="gap-[12px] items-center flex-col justify-center text-center">
               {
                 menuHeader.map((el, index) => (
