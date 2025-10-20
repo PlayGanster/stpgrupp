@@ -175,7 +175,7 @@ const RightItem = () => {
         </p>
       </div>
       
-      <ProductButton />
+      <ProductButton nameProduct={product?.name} />
       
       <div className="flex gap-[6px]">
         <div className="w-[70px] h-[70px] rounded-full relative overflow-hidden">

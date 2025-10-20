@@ -12,7 +12,8 @@ interface ButtonType {
     height?: 35 | 45 | 40;
     padding?: "normal" | "small";
     width?: "full";
-    weight?: "bold"
+    weight?: "bold";
+    disabled?: boolean;
 }
 
 const Button: React.FC<ButtonType> = ({
@@ -25,13 +26,18 @@ const Button: React.FC<ButtonType> = ({
     height=35,
     padding="normal",
     width,
-    weight
+    weight,
+    disabled=false
 }) => {
     const styleColor = () => {
+        if (disabled) {
+            return "bg-gray-300 text-gray-500 cursor-not-allowed";
+        }
+        
         if(color === "blue") { 
             return "bg-gradient-to-r from-[#0dccff] to-[#4760ff] hover:from-[#00b8f5] hover:to-[#3a50e5]"; 
         }else if(color === "green") {
-             return "bg-gradient-to-r from-[#43ea80] to-[#38f8d4] hover:from-[#38d870] hover:to-[#2de0c0]"; 
+             return "bg-gradient-to-r from-[#36c96d] to-[#2cd4b3] hover:from-[#2db55c] hover:to-[#24b89c]"; 
         }else if(color === "red") {
             return "bg-gradient-to-r from-[#fc0077] to-[#ff7275] hover:from-[#e0006a] hover:to-[#e66568]"; 
         }else if(color === "gray") {
@@ -72,17 +78,24 @@ const Button: React.FC<ButtonType> = ({
         if(width === "full") return "w-full"
     }
 
-    if(href !== undefined) {
+    const buttonClasses = `button-default ${styleWeight()} ${styleWidth()} ${styleColor()} ${styleHeight()} ${stylePadding()} ${styleSize()} transition-all duration-200 text-white ${disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`;
+
+    if(href !== undefined && !disabled) {
         return (
             <Link href={href}>
-                <button className={`button-default ${styleWeight()} ${styleWidth()} ${styleColor()} ${styleHeight()} ${stylePadding()} ${styleSize()} transition-all duration-200 text-white`}>
+                <button className={buttonClasses}>
                     {Icon ? <Icon className="min-w-[16px]" size={styleIcon()} /> : null} {name}
                 </button>
             </Link>
         )
     }
+    
     return (
-        <button onClick={onClick} className={`button-default ${styleWeight()} ${styleWidth()} ${styleColor()} ${styleHeight()} ${stylePadding()} ${styleSize()} transition-all duration-200 text-white`}>
+        <button 
+            onClick={disabled ? undefined : onClick} 
+            className={buttonClasses}
+            disabled={disabled}
+        >
             {Icon ? <Icon className="min-w-[16px]" size={styleIcon()} /> : null} {name}
         </button>
     )

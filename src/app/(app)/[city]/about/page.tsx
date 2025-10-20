@@ -109,80 +109,88 @@ export default function About({ params }: { params: { city?: string } }) {
   <div className="max-w-full mx-auto">
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
       {/* Карточка 1 */}
-      <div className="group relative bg-[#E5E9F2] rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500" />
-        <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-500">🚜</div>
-        <div className="mb-2">
-          <span className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-            120
-          </span>
-          <span className="text-2xl lg:text-3xl font-bold text-gray-700">+</span>
+      <div className="group relative bg-[#E5E9F2] rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+        <div className=" p-6 ">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-cyan-500 opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500" />
+          <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-500">🚜</div>
+          <div className="mb-2">
+            <span className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+              120
+            </span>
+            <span className="text-2xl lg:text-3xl font-bold text-gray-700">+</span>
+          </div>
+          <div className="text-lg font-semibold text-gray-800 mb-2 leading-tight">
+            единиц техники
+          </div>
         </div>
-        <div className="text-lg font-semibold text-gray-800 mb-2 leading-tight">
-          единиц техники
-        </div>
-        <div className="text-sm text-gray-600 leading-relaxed">
+        <div className="text-sm h-[70px] pt-[12px] px-6 text-gray-700 font-bold leading-relaxed bg-gradient-to-r from-[#36c96d] to-[#2cd4b3] hover:from-[#2db55c] hover:to-[#24b89c]">
           Обслуженной, исправной и надежной техники
         </div>
         <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       </div>
 
       {/* Карточка 2 */}
-      <div className="group relative bg-[#E5E9F2] rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500" />
-        <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-500">⭐</div>
-        <div className="mb-2">
-          <span className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-            5
-          </span>
-          <span className="text-2xl lg:text-3xl font-bold text-gray-700">+ лет</span>
-        </div>
-        <div className="text-lg font-semibold text-gray-800 mb-2 leading-tight">
-          на рынке
-        </div>
-        <div className="text-sm text-gray-600 leading-relaxed">
-          Можете довериться нашему многолетнему опыту
-        </div>
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      </div>
+      <div className="group relative bg-[#E5E9F2] rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+  <div className="p-6">
+    <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500" />
+    <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-500">⭐</div>
+    <div className="mb-2">
+      <span className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+        5
+      </span>
+      <span className="text-2xl lg:text-3xl font-bold text-gray-700">+ лет</span>
+    </div>
+    <div className="text-lg font-semibold text-gray-800 mb-2 leading-tight">
+      на рынке
+    </div>
+  </div>
+  <div className="text-sm h-[70px] pt-[12px] px-6 text-gray-700 font-bold leading-relaxed bg-gradient-to-r from-[#36c96d] to-[#2cd4b3] hover:from-[#2db55c] hover:to-[#24b89c]">
+    Можете довериться нашему многолетнему опыту
+  </div>
+  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+</div>
 
-      {/* Карточка 3 */}
-      <div className="group relative bg-[#E5E9F2] rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500" />
-        <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-500">💬</div>
-        <div className="mb-2">
-          <span className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-            300
-          </span>
-          <span className="text-2xl lg:text-3xl font-bold text-gray-700">+</span>
-        </div>
-        <div className="text-lg font-semibold text-gray-800 mb-2 leading-tight">
-          отзывов
-        </div>
-        <div className="text-sm text-gray-600 leading-relaxed">
-          Положительных отзывов от живых людей
-        </div>
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      </div>
+{/* Карточка 3 */}
+<div className="group relative bg-[#E5E9F2] rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+  <div className="p-6">
+    <div className="absolute inset-0 bg-gradient-to-br from-purple-500 to-pink-500 opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500" />
+    <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-500">💬</div>
+    <div className="mb-2">
+      <span className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+        300
+      </span>
+      <span className="text-2xl lg:text-3xl font-bold text-gray-700">+</span>
+    </div>
+    <div className="text-lg font-semibold text-gray-800 mb-2 leading-tight">
+      отзывов
+    </div>
+  </div>
+  <div className="text-sm h-[70px] pt-[12px] px-6 text-gray-700 font-bold leading-relaxed bg-gradient-to-r from-[#36c96d] to-[#2cd4b3] hover:from-[#2db55c] hover:to-[#24b89c]">
+    Положительных отзывов от живых людей
+  </div>
+  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+</div>
 
-      {/* Карточка 4 */}
-      <div className="group relative bg-[#E5E9F2] rounded-3xl p-6 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 ">
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-500 opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500" />
-        <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-500">✅</div>
-        <div className="mb-2">
-          <span className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-            8000
-          </span>
-          <span className="text-2xl lg:text-3xl font-bold text-gray-700">+</span>
-        </div>
-        <div className="text-lg font-semibold text-gray-800 mb-2 leading-tight">
-          заявок закрыто
-        </div>
-        <div className="text-sm text-gray-600 leading-relaxed">
-          Более 80% клиентов возвращаются к нам
-        </div>
-        <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-orange-500 to-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      </div>
+{/* Карточка 4 */}
+<div className="group relative bg-[#E5E9F2] rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2">
+  <div className="p-6">
+    <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-500 opacity-0 group-hover:opacity-5 rounded-3xl transition-opacity duration-500" />
+    <div className="text-4xl mb-4 transform group-hover:scale-110 transition-transform duration-500">✅</div>
+    <div className="mb-2">
+      <span className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+        8000
+      </span>
+      <span className="text-2xl lg:text-3xl font-bold text-gray-700">+</span>
+    </div>
+    <div className="text-lg font-semibold text-gray-800 mb-2 leading-tight">
+      заявок закрыто
+    </div>
+  </div>
+  <div className="text-sm h-[70px] pt-[12px] px-6 text-gray-700 font-bold leading-relaxed bg-gradient-to-r from-[#36c96d] to-[#2cd4b3] hover:from-[#2db55c] hover:to-[#24b89c]">
+    Более 80% клиентов возвращаются к нам
+  </div>
+  <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-gradient-to-r from-orange-500 to-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+</div>
     </div>
   </div>
 </section>

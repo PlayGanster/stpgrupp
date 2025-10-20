@@ -384,7 +384,7 @@ const Header = () => {
                 <div className="w-full h-full flex justify-center items-center p-[12px]">
                     <div className="relative max-w-[700px] w-full p-[20px] md:p-[40px] bg-[#E5E9F2]  rounded-[20px] md:rounded-[40px]" onClick={(e) => e.stopPropagation()}>
                         <RxCross2 onClick={() => setOpenForm(false)} size={22} className="absolute top-[15px] right-[15px] z-22 cursor-pointer" />
-                        <CallForm />
+                        <CallForm page="Шапка" />
                     </div>
                 </div>
             </Modal>

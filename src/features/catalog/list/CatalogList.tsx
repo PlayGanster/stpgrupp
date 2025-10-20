@@ -1277,7 +1277,7 @@ const CatalogList: React.FC<CatalogListType> = ({
                             <div className="lg:hidden mb-4">
                                 <button
                                     onClick={() => setShowFiltersModal(true)}
-                                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm font-medium lg:text-[length:var(--size-lg-small-text)] md:text-[length:var(--size-md-small-text)] text-[length:var(--size-mobile-small-text)]"
+                                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm font-medium lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)]"
                                 >
                                     <span>Фильтры</span>
                                     {activeFiltersCount > 0 && (

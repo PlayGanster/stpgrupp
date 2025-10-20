@@ -292,7 +292,7 @@ export default function ContactsPage({ params }: { params: { city?: string } }) 
             
             {/* Форма под картой */}
             <div className="mt-8  px-[30px] py-[30px] bg-[#F2F1EF] rounded-[40px]">
-              <ContactForm />
+              <ContactForm page="Контакты" />
             </div>
           </div>
         </div>

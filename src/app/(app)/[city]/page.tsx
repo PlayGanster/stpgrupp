@@ -187,7 +187,7 @@ export default function Home({ params }: { params: { city?: string } }) {
           {/* Секция с формой обратной связи */}
           <section aria-label="Контактная форма" className="w-full gap-[20px] lg:gap-[70px] md:flex-row flex-col flex items-start mt-[20px]">
             <div className="w-full md:w-[60%] lg:w-[65%] px-[30px] py-[30px] bg-[#F2F1EF] rounded-[40px]">
-              <ContactForm />
+              <ContactForm page="Главная" />
             </div>
             <div className="w-full md:w-[40%] lg:w-[35%] max-h-[485px] overflow-hidden relative">
               <FeedbackList view={6} />

@@ -119,7 +119,8 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
     const [products, setProducts] = useState<Product[] | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [reviews, setReviews] = useState<Review[] | null>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
+    const [animationDuration, setAnimationDuration] = useState(0);
+    const contentRef = useRef<HTMLDivElement>(null);
     const params = useParams();
     const product_id = params.id as string;
     const { slug, isCityVersion } = useCity();
@@ -140,7 +141,6 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
             const now = Date.now();
             const cacheDuration = 10 * 60 * 1000;
 
-            // ВСЕГДА загружаем все отзывы, независимо от того, на странице товара мы или нет
             const cachedDataReviews = localStorage.getItem(`cachedReviews`);
             const cacheTimestampReviews = localStorage.getItem(`reviewsCacheTimestamp`);
             
@@ -172,11 +172,26 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
         } finally {
             setLoading(false);
         }
-    }, []); // Убрана зависимость от product_id
+    }, []);
 
     useEffect(() => {
         fetchProduct();
     }, [fetchProduct]);
+
+    // Расчет длительности анимации после рендера
+    useEffect(() => {
+        if (view !== "all" && reviews && reviews.length >= 4 && contentRef.current) {
+            // Даем время на рендер контента
+            setTimeout(() => {
+                if (contentRef.current) {
+                    const contentHeight = contentRef.current.scrollHeight / 2; // делим на 2, т.к. контент дублирован
+                    const speedPxPerSecond = 70; // 20px в секунду
+                    const duration = contentHeight / speedPxPerSecond;
+                    setAnimationDuration(duration);
+                }
+            }, 100);
+        }
+    }, [reviews, view]);
 
     const handleOpenAll = useCallback(() => setOpenAll(true), []);
 
@@ -210,17 +225,16 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
             );
         }
 
-        // Для бесконечной анимации - дублируем контент и используем CSS анимацию
+        // Для бесконечной анимации - дублируем контент
         const duplicatedReviews = [...reviews, ...reviews];
-        const animationDuration = 18; // Фиксированная длительность 8 секунд
 
         return (
             <div className="overflow-hidden h-[400px] relative">
                 <div 
-                    ref={containerRef}
-                    className="flex flex-col gap-[16px] animate-scroll-reviews"
+                    ref={contentRef}
+                    className="flex flex-col gap-[16px]"
                     style={{ 
-                        animation: `scrollReviews ${animationDuration}s linear infinite` 
+                        animation: animationDuration > 0 ? `scrollReviews ${animationDuration}s linear infinite` : 'none'
                     }}
                 >
                     {duplicatedReviews.map((review, index) => (
@@ -242,13 +256,10 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
                             transform: translateY(-50%);
                         }
                     }
-                    .animate-scroll-reviews {
-                        animation: scrollReviews ${animationDuration}s linear infinite;
-                    }
                 `}</style>
             </div>
         );
-    }, [reviews, view, products, getHrefWithCity]);
+    }, [reviews, view, products, getHrefWithCity, animationDuration]);
 
     const containerHeightClass = !reviews || reviews.length === 0 || location.pathname.includes("catalog") ? "h-auto" : "lg:h-[485px] md:h-[460px]";
 

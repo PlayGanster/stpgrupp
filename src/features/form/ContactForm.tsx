@@ -4,6 +4,8 @@ import Button from "@/shared/ui/button/Button"
 import Checkbox from "@/shared/ui/checkbox/Checkbox"
 import PhoneInput from "@/shared/ui/phoneInput/PhoneInput"
 import { useRef, useState, useCallback, memo } from "react"
+import { useCity } from '@/hooks/useCity'
+import { CITY_CASES } from '@/config/cities'
 
 // Мемоизированные статичные компоненты с семантикой
 const Heading = memo(() => (
@@ -30,36 +32,119 @@ const PlaceholderText = memo(() => (
 ))
 PlaceholderText.displayName = "PlaceholderText"
 
-const SubmitButtons = memo(() => (
+interface SubmitButtonsProps {
+  isLoading: boolean;
+}
+
+const SubmitButtons = memo(({ isLoading }: SubmitButtonsProps) => (
   <div className="w-full flex justify-end">
     <div className="md:flex hidden">
-      <Button name="Отправить заявку" weight="bold" size="large" height={45} color="red" />
+      <Button 
+        name={isLoading ? "Отправка..." : "Отправить заявку"} 
+        weight="bold" 
+        size="large" 
+        height={45} 
+        color="red" 
+        disabled={isLoading}
+      />
     </div>
     <div className="md:hidden flex">
-      <Button name="Отправить заявку" weight="bold" size="small" height={35} color="red" />
+      <Button 
+        name={isLoading ? "Отправка..." : "Отправить заявку"} 
+        weight="bold" 
+        size="small" 
+        height={35} 
+        color="red" 
+        disabled={isLoading}
+      />
     </div>
   </div>
 ))
 SubmitButtons.displayName = "SubmitButtons"
 
-const ContactForm = () => {
+interface ContactFormType {
+  page: string;
+}
+
+const ContactForm: React.FC<ContactFormType> = ({
+  page
+}) => {
   const [phone, setPhone] = useState('+7 (')
   const [pin, setPin] = useState("")
   const [check, setCheck] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Получаем информацию о городе
+  const { slug, isCityVersion } = useCity()
+  
+  // Определяем город в предложном падеже
+  const getCityInPrepositionalCase = () => {
+    if (!isCityVersion || !slug) {
+      return "Москве" // значение по умолчанию
+    }
+    
+    const cityData = CITY_CASES[slug as keyof typeof CITY_CASES]
+    return cityData ? cityData.dative : "Москве"
+  }
+  
+  const cityPrepositional = getCityInPrepositionalCase()
 
   const handlePinChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPin(e.target.value)
   }, [])
 
-  // Можно добавить валидацию и обработчик submit
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
     if (!check) {
       alert("Пожалуйста, дайте согласие на обработку персональных данных")
       return
     }
-    // Логика отправки формы
+
+    // Базовая валидация телефона
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 11) {
+      alert("Пожалуйста, введите корректный номер телефона")
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/telegram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: phone,
+          comment: pin,
+          city: slug || 'moscow',
+          cityName: cityPrepositional,
+          type: 'consultation',
+          page: page
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        alert("Заявка успешно отправлена! Мы перезвоним вам в течение 2 минут.")
+        // Очистка формы после успешной отправки
+        setPhone('+7 (')
+        setPin('')
+        setCheck(false)
+      } else {
+        console.error('Telegram API error:', result.error)
+        alert("Произошла ошибка при отправке заявки. Пожалуйста, попробуйте еще раз или свяжитесь с нами по телефону.")
+      }
+    } catch (error) {
+      console.error('Form submission error:', error)
+      alert("Произошла ошибка при отправке заявки. Пожалуйста, попробуйте еще раз.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -86,6 +171,7 @@ const ContactForm = () => {
           className="px-[15px] placeholder:text-white py-[8px] md:text-[16px] text-[14px] rounded-[12px] bg-white w-full min-h-[150px] text-black outline-none relative z-2 max-h-[200px]"
           placeholder="Ваш комментарий облегчит обработку заявки. Не обязателен к заполнению."
           aria-describedby="comment-placeholder"
+          disabled={isLoading}
         />
         {!pin && <PlaceholderText />}
       </div>
@@ -98,7 +184,7 @@ const ContactForm = () => {
       />
       <div className="h-[12px]" />
 
-      <SubmitButtons />
+      <SubmitButtons isLoading={isLoading} />
     </form>
   )
 }
