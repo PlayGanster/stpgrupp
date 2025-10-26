@@ -72,14 +72,11 @@ const Footer = () => {
                                     </Link>
                                 ))
                             }
-                            <Link href={getLink("/about")}>
-                                <li className=" text-white hover:text-[var(--href-hover-color)] cursor-pointer underline">О компании</li>
-                            </Link>
                         </ul>
                         <ul className="gap-[3px] flex flex-col list-disc md:items-start items-center text-center md:text-start  lg:text-[length:var(--size-lg-small-text)] md:text-[length:var(--size-md-small-text)] text-[length:var(--size-mobile-small-text)]  list-inside">
                             {
                                 DocumentList.map((el, index) => (
-                                    <Link href={getLink(el.href)} key={index}>
+                                    <Link href={el.href} target="_blank" key={index}>
                                         <li className=" text-white hover:text-[var(--href-hover-color)] list-inside">{el.name}</li>
                                     </Link>
                                 ))

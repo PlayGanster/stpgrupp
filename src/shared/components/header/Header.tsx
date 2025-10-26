@@ -430,8 +430,8 @@ const Header = () => {
           }
           
           {/* Почта в центре с адаптацией */}
-          <div className="absolute left-1/2 transform -translate-x-1/2 hidden lg:flex">
-            <a href="mailto:stp.grupp@mail.ru" className="text-white text-[14px] hover:text-[var(--href-hover-color)] transition-colors whitespace-nowrap">
+          <div className="absolute left-3/5 mr-[20px] transform -translate-x-3/5 hidden lg:flex">
+            <a href="mailto:stp.grupp@mail.ru" className="text-[var(--blue-color)] text-[14px] hover:text-[var(--href-hover-color)] transition-colors whitespace-nowrap">
               stp.grupp@mail.ru
             </a>
           </div>
@@ -442,7 +442,7 @@ const Header = () => {
             
             {/* Кнопки мессенджеров без надписей */}
             <div className="lg:flex hidden"><Link target='_blank' href="https://wa.me/89630081446"><Button color="green" icon={FaWhatsapp} height={35} size="no-name" padding="small" /></Link></div>
-            <div className="lg:flex hidden"><Link target='_blank' href="https://t.me/your_telegram"><Button color="blue" icon={FaTelegram} height={35} size="no-name" padding="small" /></Link></div>
+            <div className="lg:flex hidden"><Link target='_blank' href="https://t.me/+89630081446"><Button color="blue" icon={FaTelegram} height={35} size="no-name" padding="small" /></Link></div>
             
             {/* Мобильные версии */}
             <div className="md:flex hidden lg:hidden">
@@ -454,7 +454,7 @@ const Header = () => {
               </Link>
             </div>
             <div className="md:flex hidden lg:hidden">
-              <Link target='_blank' href="https://t.me/your_telegram">
+              <Link target='_blank' href="https://t.me/+89630081446">
                 <Button color="blue" icon={FaTelegram} height={35} size="no-name" padding="small" />
               </Link>
             </div>
@@ -469,7 +469,7 @@ const Header = () => {
               </Link>
             </div>
             <div className="md:hidden flex">
-              <Link target='_blank' href="https://t.me/your_telegram">
+              <Link target='_blank' href="https://t.me/+89630081446">
                 <Button color="blue" icon={FaTelegram} height={35} size="no-name" padding="small" />
               </Link>
             </div>

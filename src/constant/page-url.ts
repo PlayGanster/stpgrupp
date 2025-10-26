@@ -6,6 +6,7 @@ export const PAGES = {
     "QUESTIONS-PAGE": "/questions",
     "JOB-PAGE": "/job",
     "DOCUMENT-PAGE": "/documents",
+    "ABOUT-PAGE": "/about"
 }
 
 export const menuHeader: {name: string, href: string}[] = [
@@ -32,28 +33,32 @@ export const menuHeader: {name: string, href: string}[] = [
     {
         name: "Вакансии",
         href: PAGES['JOB-PAGE']
+    },
+    {
+        name: "О компании",
+        href: PAGES['ABOUT-PAGE']
     }
 ]
 
 export const DocumentList: {name: string, href: string}[] = [
     {
         name: "Обработка персональных данных",
-        href: `${PAGES['DOCUMENT-PAGE']}/processing-of-personal-data`
+        href: `https://disk.yandex.by/i/tQUoXO0eksaKbg`
     },
     {
         name: "Согласие на обработку персональных данных",
-        href: `${PAGES['DOCUMENT-PAGE']}/сonsent-to-the-processing-of-personal-data`
+        href: `https://disk.yandex.by/i/c0PgS0jfGWqbFQ`
     },
     {
         name: "Согласие на обработку персональных данных посредством сервисов веб-аналитики «Яндекс.Метрика» и ApMetrica",
-        href: `${PAGES['DOCUMENT-PAGE']}/сonsent-to-the-processing-of-personal-data-yandex-apmetrica`
+        href: `https://disk.yandex.by/i/3fxZc47fFDNywg`
     },
     {
         name: "Согласие на информационную и рекламную рассылку",
-        href: `${PAGES['DOCUMENT-PAGE']}/consent-to-information-and-advertising-newsletters`
+        href: `https://disk.yandex.by/i/b60Rz_wcyK60lw`
     },
     {
         name: "Пользовательское соглашение",
-        href: `${PAGES['DOCUMENT-PAGE']}/user-agreement`
+        href: `https://disk.yandex.by/i/ZHPOe3zi9tglWg`
     }
 ]

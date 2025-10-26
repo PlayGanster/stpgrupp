@@ -13,6 +13,7 @@ import Button from "@/shared/ui/button/Button";
 import Checkbox from "@/shared/ui/checkbox/Checkbox";
 import PhoneInput from "@/shared/ui/phoneInput/PhoneInput";
 import ContactsMap from "@/features/contacts/map/ContactsMap";
+import { CITY_CASES } from "@/config/cities";
 
 interface CatalogListType {
     all?: boolean;
@@ -210,15 +211,70 @@ const FiltersMap = ({
 const ConsultationForm = () => {
   const [phone, setPhone] = useState('+7 (')
   const [check, setCheck] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const { slug, isCityVersion } = useCity()
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const getCityInPrepositionalCase = () => {
+      if (!isCityVersion || !slug) {
+        return "Москве" // значение по умолчанию
+      }
+      
+      const cityData = CITY_CASES[slug as keyof typeof CITY_CASES]
+      return cityData ? cityData.dative : "Москве"
+    }
+    
+    const cityPrepositional = getCityInPrepositionalCase()
+
+   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
     if (!check) {
       alert("Пожалуйста, дайте согласие на обработку персональных данных")
       return
     }
-    // Логика отправки формы
-    console.log("Форма консультации отправлена", { phone })
+
+    // Базовая валидация телефона
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 11) {
+      alert("Пожалуйста, введите корректный номер телефона")
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/telegram', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phone: phone,
+          comment: "",
+          city: slug || 'moscow',
+          cityName: cityPrepositional,
+          type: 'consultation',
+          page: "Каталог"
+        })
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        alert("Заявка успешно отправлена! Мы перезвоним вам в течение 2 минут.")
+        // Очистка формы после успешной отправки
+        setPhone('+7 (')
+        setCheck(false)
+      } else {
+        console.error('Telegram API error:', result.error)
+        alert("Произошла ошибка при отправке заявки. Пожалуйста, попробуйте еще раз или свяжитесь с нами по телефону.")
+      }
+    } catch (error) {
+      console.error('Form submission error:', error)
+      alert("Произошла ошибка при отправке заявки. Пожалуйста, попробуйте еще раз.")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (

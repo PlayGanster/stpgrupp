@@ -33,7 +33,7 @@ const ProductButton: React.FC<ProductButtonType> = ({
             <div className="flex flex-row md:flex-col gap-[6px]">
                 <button className="w-full min-h-[35px] py-[8px] md:min-h-[50px] flex justify-center items-center  text-white text-[length:var(--size-mobile-default-text)] rounded-[5px] cursor-pointer md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] font-semibold flex-col gap-[4px]" style={{ background: 'linear-gradient(90deg, #0dccff 0%, #4760ff 100%)' }} onClick={() => setOpenModal(true)}>
                     <span>Позвонить</span>
-                    <span className="font-normal md:block hidden">8 999 333 22 11</span>
+                    <span className="font-normal md:block hidden">8 963 008 14 46</span>
                 </button>
                 <Link href="https://wa.me/89630081446" className="w-full" target="_blank">
                     <button className="w-full min-h-[35px] md:min-h-[50px] py-[8px] flex justify-center items-center  text-white text-[length:var(--size-mobile-default-text)] rounded-[5px] cursor-pointer md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] font-semibold flex-col gap-[4px] bg-gradient-to-r from-[#36c96d] to-[#2cd4b3] hover:from-[#2db55c] hover:to-[#24b89c]" >

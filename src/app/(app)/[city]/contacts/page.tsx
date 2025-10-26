@@ -64,9 +64,9 @@ const getCityContacts = (citySlug: CitySlug) => {
     moscow: {
       phone: "+7 930 333 4046",
       email: "stp.grupp@mail.ru",
-      address: `Курганская область, Белозерский район, село Белозерское, ул. Советская, д. 32, кв. 12`,
+      address: `Курган`,
       workHours: "ПН-ВС 8:00-23:00",
-      coordinates: [55.825694, 65.589889] as [number, number]
+      coordinates: [55.441004, 65.341118] as [number, number]
     },
     // Можно добавить контакты для других городов
   };
@@ -87,11 +87,7 @@ export default function ContactsPage({ params }: { params: { city?: string } }) 
   const contactInfo = {
     ...getCityContacts(citySlug),
     company: {
-      name: 'ООО "СПЕЦТЕХПАРК ГРУПП"',
       inn: "4500011167",
-      ogrn: "1234500005024",
-      kpp: "450001001",
-      legalAddress: "Курганская область, Белозерский район, село Белозерское, ул. Советская, д. 32, кв. 12"
     },
     social: {
       whatsapp: "+7 (963) 008 1446",
@@ -246,7 +242,6 @@ export default function ContactsPage({ params }: { params: { city?: string } }) 
               <h2 className="text-[18px] md:text-[21px] font-semibold">Адрес</h2>
               <div className="mt-4 space-y-3">
                 <p className="font-[500] text-[14px] md:text-[16px]">
-                  <span className="text-[var(--grey-text-color)]">Адрес: </span> 
                   <span itemProp="streetAddress">{contactInfo.address}</span>
                 </p>
                 <p className="font-[500] text-[14px] md:text-[16px]">
@@ -260,24 +255,8 @@ export default function ContactsPage({ params }: { params: { city?: string } }) 
               <h2 className="text-[18px] md:text-[21px] font-semibold">Юридическая информация</h2>
               <div className="mt-4 space-y-3">
                 <p className="font-[500] text-[14px] md:text-[16px]">
-                  <span className="text-[var(--grey-text-color)]">Название: </span> 
-                  <span itemProp="name">{contactInfo.company.name}</span>
-                </p>
-                <p className="font-[500] text-[14px] md:text-[16px]">
                   <span className="text-[var(--grey-text-color)]">ИНН: </span> 
                   <span itemProp="taxID">{contactInfo.company.inn}</span>
-                </p>
-                <p className="font-[500] text-[14px] md:text-[16px]">
-                  <span className="text-[var(--grey-text-color)]">ОГРН: </span> 
-                  <span itemProp="identifier">{contactInfo.company.ogrn}</span>
-                </p>
-                <p className="font-[500] text-[14px] md:text-[16px]">
-                  <span className="text-[var(--grey-text-color)]">КПП: </span> 
-                  {contactInfo.company.kpp}
-                </p>
-                <p className="font-[500] text-[14px] md:text-[16px]">
-                  <span className="text-[var(--grey-text-color)]">Юридический адрес: </span> 
-                  {contactInfo.company.legalAddress}
                 </p>
               </div>
             </section>
@@ -287,7 +266,7 @@ export default function ContactsPage({ params }: { params: { city?: string } }) 
           <div className="lg:w-3/5 flex flex-col">
             {/* Карта занимает доступное пространство */}
             <div className="flex-1">
-              <ContactsMap coordinates={contactInfo.coordinates} address={contactInfo.address} />
+              <ContactsMap coordinates={contactInfo.coordinates} zoom={10} address={contactInfo.address} />
             </div>
             
             {/* Форма под картой */}
