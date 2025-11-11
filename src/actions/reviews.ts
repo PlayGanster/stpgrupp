@@ -9,6 +9,7 @@ export interface Review {
     rating: number;
     images: string | null;
     created_at: number;
+    attached_photos: string;
 }
 
 // Общая функция для выполнения запросов

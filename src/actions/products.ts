@@ -42,7 +42,7 @@ async function fetchWithCache<T>(url: string, fallback: T): Promise<T> {
 }
 
 // Функция для получения всех продуктов
-export async function getProductsList(): Promise<Product[] | null> {
+export async function getProductsList(): Promise<any> {
     const fallbackProducts: Product[] | null = null;
 
     return fetchWithCache<Product[] | null>(`${API_BASE_URL}/products/`, fallbackProducts);

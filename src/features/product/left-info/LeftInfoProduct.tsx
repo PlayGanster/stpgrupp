@@ -49,6 +49,34 @@ const formatPlainText = (text: string): string => {
   return paragraphs.map(paragraph => `<p>${paragraph}</p>`).join('');
 };
 
+// Функция для очистки и валидации HTML
+const sanitizeHTML = (html: string): string => {
+  // Разрешаем безопасные HTML теги
+  const allowedTags = [
+    'p', 'br', 'strong', 'em', 'u', 's', 'b', 'i',
+    'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'div', 'span', 'blockquote', 'hr'
+  ];
+  
+  // Удаляем опасные теги и атрибуты, оставляя только разрешенные
+  const cleanHTML = html.replace(/<(\/?)(\w+)([^>]*)>/gi, (match, slash, tag, attributes) => {
+    const lowerTag = tag.toLowerCase();
+    
+    if (allowedTags.includes(lowerTag)) {
+      // Для разрешенных тегов оставляем только базовые атрибуты
+      if (['ul', 'ol'].includes(lowerTag)) {
+        return `<${slash}${tag}>`;
+      }
+      return `<${slash}${tag}>`;
+    }
+    
+    // Удаляем неразрешенные теги
+    return '';
+  });
+  
+  return cleanHTML;
+};
+
 const LeftInfoProduct = () => {
     const [loading, setLoading] = useState(true);
     const [product, setProduct] = useState<Product | null>(null);
@@ -163,9 +191,9 @@ const LeftInfoProduct = () => {
         
         const description = product.description.trim();
         
-        // Если описание содержит HTML теги, используем как есть
+        // Если описание содержит HTML теги, очищаем и используем как есть
         if (containsHTML(description)) {
-            return description;
+            return sanitizeHTML(description);
         }
         
         // Если это обычный текст, форматируем его
@@ -227,9 +255,6 @@ const LeftInfoProduct = () => {
             </div>
             {/* Расположение - h2 для иерархии заголовков */}
             <div className="mt-[12px] gap-[8px] flex flex-col">
-                <h2 className="text-[length:var(--size-mobile-heading-text)] md:text-[length:var(--size-md-heading-text)] lg:text-[length:var(--size-lg-heading-text)] font-black">
-                    Расположение
-                </h2>
                 {loading ? (
                     <SkeletonLoader height="25px" />
                 ) : (
@@ -274,7 +299,7 @@ const LeftInfoProduct = () => {
                     <>
                         {renderNull(product?.description)}
                         {processedDescription && (
-                            <div className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] leading-[1.2] prose prose-sm max-w-none">
+                            <div className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] leading-[1.2]">
                                 <SafeHTML 
                                     html={processedDescription} 
                                     className="rich-text-content"
@@ -308,60 +333,68 @@ const LeftInfoProduct = () => {
             </div>
 
             {/* Добавляем стили для форматированного текста */}
-            <style jsx>{`
-                .rich-text-content :global(h1) {
+            <style jsx global>{`
+                .rich-text-content h1 {
                     font-size: 1.5em;
                     font-weight: bold;
                     margin: 1em 0 0.5em 0;
                 }
                 
-                .rich-text-content :global(h2) {
+                .rich-text-content h2 {
                     font-size: 1.25em;
                     font-weight: bold;
                     margin: 1em 0 0.5em 0;
                 }
                 
-                .rich-text-content :global(h3) {
+                .rich-text-content h3 {
                     font-size: 1.1em;
                     font-weight: bold;
                     margin: 1em 0 0.5em 0;
                 }
                 
-                .rich-text-content :global(p) {
+                .rich-text-content p {
                     margin: 0 0 1em 0;
+                    line-height: 1.5;
                 }
                 
-                .rich-text-content :global(ul),
-                .rich-text-content :global(ol) {
+                .rich-text-content ul,
+                .rich-text-content ol {
                     padding-left: 1.5em;
                     margin: 1em 0;
                 }
                 
-                .rich-text-content :global(li) {
+                .rich-text-content li {
                     margin-bottom: 0.5em;
+                    line-height: 1.4;
                 }
                 
-                .rich-text-content :global(blockquote) {
+                .rich-text-content blockquote {
                     border-left: 3px solid #ddd;
                     padding-left: 1em;
                     margin: 1em 0;
                     font-style: italic;
                 }
                 
-                .rich-text-content :global(strong) {
+                .rich-text-content strong {
                     font-weight: bold;
                 }
                 
-                .rich-text-content :global(em) {
+                .rich-text-content em {
                     font-style: italic;
                 }
                 
-                .rich-text-content :global(u) {
+                .rich-text-content u {
                     text-decoration: underline;
                 }
                 
-                .rich-text-content :global(s) {
+                .rich-text-content s {
                     text-decoration: line-through;
+                }
+                
+                .rich-text-content hr {
+                    border: none;
+                    border-top: 1px solid #ddd;
+                    margin: 1.5em 0;
                 }
             `}</style>
         </div>

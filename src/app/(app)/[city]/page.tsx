@@ -78,7 +78,7 @@ export default function Home({ params }: { params: { city?: string } }) {
   const cityNominative = CITY_CASES[citySlug].nominative;
   
   const renderBannerCity = () => {
-    if(cityPrepositional === "России") return "по Всей России"
+    if(cityPrepositional === "России") return "по Москве"
     return cityPrepositional
   }
 

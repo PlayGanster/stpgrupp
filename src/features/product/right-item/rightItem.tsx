@@ -7,7 +7,7 @@ import Link from "next/link"
 import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { getProduct, Product } from "@/actions/products"
 import { useParams } from "next/navigation"
-import { getReviewByProduct, getReviews, Review } from "@/actions/reviews" // Добавлен getReviews
+import { getReviewByProduct, getReviews, Review } from "@/actions/reviews"
 import { averageReviews } from "@/shared/utils/AverageReviews"
 import { declineReviews } from "@/shared/utils/DeclineReviews"
 import { getCategory, Category } from "@/actions/categories"
@@ -20,6 +20,7 @@ const CACHE_DURATION = 10 * 60 * 1000; // 10 минут
 const RightItem = () => {
   const filterRef = useRef<HTMLDivElement>(null);
   const [isSticky, setIsSticky] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(false);
   const [loading, setLoading] = useState(true);
   const [product, setProduct] = useState<Product | null>(null);
   const [category, setCategory] = useState<Category | null>(null);
@@ -28,10 +29,8 @@ const RightItem = () => {
   const params = useParams();
   const product_id = params.id as string;
   
-  // Используем хук для определения города
   const { slug, isCityVersion } = useCity();
 
-  // Функция для формирования ссылок с учетом города
   const getLink = (href: string) => {
     if (isCityVersion && slug) {
       return `/${slug}${href}`;
@@ -39,7 +38,6 @@ const RightItem = () => {
     return href;
   };
 
-  // Функция для форматирования цены без копеек
   const formatPrice = useCallback((price: number | undefined) => {
     if (!price) return "0";
     return Math.floor(price).toLocaleString('ru-RU');
@@ -54,40 +52,33 @@ const RightItem = () => {
       const cachedProduct = localStorage.getItem(`cachedProduct${product_id}`);
       const cacheTimestamp = localStorage.getItem(`productCacheTimestamp${product_id}`);
       
-      // Загружаем ВСЕ отзывы вместо отзывов по товару
       const cachedReviews = localStorage.getItem(`cachedReviews`);
       const cacheTimestampReviews = localStorage.getItem(`reviewsCacheTimestamp`);
       
       if (cachedReviews && cacheTimestampReviews && (now - parseInt(cacheTimestampReviews)) < CACHE_DURATION) {
-        // Используем кэшированные отзывы
         setReviews(JSON.parse(cachedReviews));
       } else {
-        // Загружаем все отзывы
         const reviewsData = await getReviews();
         setReviews(reviewsData);
         localStorage.setItem(`cachedReviews`, JSON.stringify(reviewsData));
         localStorage.setItem(`reviewsCacheTimestamp`, now.toString());
       }
 
-      // Проверяем есть ли актуальный кэш товара
       if (cachedProduct && cacheTimestamp && (now - parseInt(cacheTimestamp)) < CACHE_DURATION) {
         const cachedProductData = JSON.parse(cachedProduct);
         setProduct(cachedProductData);
         
-        // Загружаем категорию для кэшированного товара
         const categoryData = await getCategory(Number(cachedProductData.category_id));
         setCategory(categoryData);
         setLoading(false);
         return;
       }
 
-      // Если кэша нет или он устарел, загружаем продукт
       const productData = await getProduct(Number(product_id));
       
       if (productData) {
         setProduct(productData);
         
-        // Загружаем категорию для нового товара
         const categoryData = await getCategory(Number(productData.category_id));
         setCategory(categoryData);
         
@@ -109,7 +100,6 @@ const RightItem = () => {
     fetchData();
   }, [fetchData]);
 
-  // Мемоизированные значения для оптимизации рендеринга
   const averageRating = useMemo(() => averageReviews(reviews), [reviews]);
   const reviewsCount = useMemo(() => reviews?.length, [reviews]);
   const reviewsDeclension = useMemo(() => declineReviews(reviewsCount), [reviewsCount]);
@@ -119,16 +109,24 @@ const RightItem = () => {
       if (filterRef.current) {
         const filterTop = filterRef.current.getBoundingClientRect().top - 45;
         setIsSticky(filterTop <= 0);
+        
+        // Проверяем, достигли ли мы нижней части страницы
+        const scrollTop = window.scrollY || document.documentElement.scrollTop;
+        const windowHeight = window.innerHeight;
+        const documentHeight = document.documentElement.scrollHeight;
+        const bottomOffset = 270; // Отступ от нижней части страницы
+        
+        const isBottom = scrollTop + windowHeight >= documentHeight - bottomOffset;
+        setIsAtBottom(isBottom);
       }
     };
 
-    handleScroll(); // Проверить начальную позицию
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Компоненты скелетонов для повторного использования
   const SkeletonLoader = ({ width, height, className = "" }: { width: string, height: string, className?: string }) => (
     <div 
       className={`animate-pulse bg-gray-200 rounded-[5px] ${className}`} 
@@ -243,12 +241,16 @@ const RightItem = () => {
     </>
   );
 
+  // Обновленные классы для мобильной версии
   const stickyClass = isSticky 
     ? 'fixed top-[45px] z-5 ml-[-12px] h-[45px] px-[12px]' 
     : 'sticky top-0';
   
+  // Исправленные классы для мобильной версии
   const mobileStickyClass = isSticky 
-    ? 'fixed bottom-[0px] ml-[-12px] pt-[6px] w-dvw px-[12px] bg-[white] z-9 h-[75px]' 
+    ? `fixed bottom-0 ml-[-12px] pt-[6px] w-dvw px-[12px] bg-white z-99 h-[75px] border-t border-gray-200 ${
+        isAtBottom ? 'transform translate-y-[100%]' : ''
+      }` 
     : 'sticky top-0';
 
   if (!loading && !product) {
@@ -263,7 +265,7 @@ const RightItem = () => {
       </div>
       
       {/* Mobile version */}
-      <div className={`md:hidden flex flex-col gap-[6px] mt-[12px] w-[calc(100dvw_-_24px)] ${mobileStickyClass}`}>
+      <div className={`md:hidden flex flex-col gap-[6px] mt-[12px] w-[calc(100dvw_-_24px)] transition-transform duration-300 ${mobileStickyClass}`}>
         {renderMobileContent()}
       </div>
     </aside>

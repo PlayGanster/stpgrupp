@@ -34,8 +34,151 @@ const StarRating = memo(({ rating, size = 20 }: { rating: number; size?: number 
 ));
 StarRating.displayName = "StarRating";
 
-const ReviewItem = memo(({ review, products, getHrefWithCity }: { 
+// Компонент для отображения прикрепленных фотографий
+const AttachedPhotos = memo(({ photos, view }: { photos: string, view: string | number }) => {
+    const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+    const [currentIndex, setCurrentIndex] = useState(0);
+
+    if (!photos || photos.trim() === '') return null;
+
+    const photoArray = photos.split(',').map(photo => photo.trim()).filter(photo => photo !== '');
+    
+    if (photoArray.length === 0) return null;
+
+    const openPhoto = (photo: string, index: number) => {
+        setSelectedPhoto(photo);
+        setCurrentIndex(index);
+    };
+
+    const closePhoto = () => {
+        setSelectedPhoto(null);
+        setCurrentIndex(0);
+    };
+
+    const nextPhoto = () => {
+        const nextIndex = (currentIndex + 1) % photoArray.length;
+        setSelectedPhoto(photoArray[nextIndex]);
+        setCurrentIndex(nextIndex);
+    };
+
+    const prevPhoto = () => {
+        const prevIndex = (currentIndex - 1 + photoArray.length) % photoArray.length;
+        setSelectedPhoto(photoArray[prevIndex]);
+        setCurrentIndex(prevIndex);
+    };
+
+    // Закрытие по ESC
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                closePhoto();
+            }
+        };
+
+        if (selectedPhoto) {
+            document.addEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'hidden'; // Блокируем скролл
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            document.body.style.overflow = 'unset';
+        };
+    }, [selectedPhoto]);
+
+    return (
+        <>
+            <div className="mt-[0px]">
+                <div className="flex gap-2 flex-wrap">
+                    {photoArray.map((photo, index) => (
+                        <div 
+                            key={index}
+                            className="relative w-16 h-16 rounded-lg overflow-hidden border border-gray-200 hover:border-blue-400 transition-colors cursor-pointer"
+                            onClick={() => openPhoto(photo, index)}
+                        >
+                            <Image
+                                src={`${API_BASE_URL}/uploads/reviews/${photo}`}
+                                alt={`Прикрепленная фотография ${index + 1}`}
+                                fill
+                                className="object-cover"
+                                sizes="64px"
+                            />
+                        </div>
+                    ))}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                    Прикрепленные фотографии: {photoArray.length}
+                </p>
+            </div>
+            {
+                view === "all" ? (
+                    <>
+                        
+            {/* Модальное окно для полноэкранного просмотра */}
+            {selectedPhoto && (
+                <div className="fixed inset-0 bg-black w-[100dvw] h-[100dvh] bg-opacity-90 z-99 flex items-center justify-center p-4">
+                    {/* Кнопка закрытия */}
+                    <button
+                        onClick={closePhoto}
+                        className="absolute cursor-pointer top-4 right-4 text-white text-2xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-all z-10"
+                        aria-label="Закрыть"
+                    >
+                        ×
+                    </button>
+
+                    {/* Кнопка "назад" (если больше одной фото) */}
+                    {photoArray.length > 1 && (
+                        <button
+                            onClick={prevPhoto}
+                            className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white text-2xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-all z-10"
+                            aria-label="Предыдущее фото"
+                        >
+                            ‹
+                        </button>
+                    )}
+
+                    {/* Основное фото */}
+                    <div className="relative max-w-full max-h-full flex items-center justify-center">
+                        <Image
+                            src={`${API_BASE_URL}/uploads/reviews/${selectedPhoto}`}
+                            alt={`Прикрепленная фотография ${currentIndex + 1}`}
+                            width={1200}
+                            height={800}
+                            className="max-w-full max-h-full object-contain"
+                            onClick={closePhoto} // Закрытие по клику на фото
+                        />
+                    </div>
+
+                    {/* Кнопка "вперед" (если больше одной фото) */}
+                    {photoArray.length > 1 && (
+                        <button
+                            onClick={nextPhoto}
+                            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white text-2xl bg-black bg-opacity-50 rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-70 transition-all z-10"
+                            aria-label="Следующее фото"
+                        >
+                            ›
+                        </button>
+                    )}
+
+                    {/* Счетчик фото */}
+                    {photoArray.length > 1 && (
+                        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white bg-black bg-opacity-50 rounded-full px-3 py-1 text-sm">
+                            {currentIndex + 1} / {photoArray.length}
+                        </div>
+                    )}
+                </div>
+            )}
+                    </>
+                ) : null
+            }
+        </>
+    );
+});
+AttachedPhotos.displayName = "AttachedPhotos";
+
+const ReviewItem = memo(({ review, products, view, getHrefWithCity }: { 
     review: Review; 
+    view: string | number;
     products?: Product[];
     getHrefWithCity: (href: string) => string;
 }) => {
@@ -45,11 +188,17 @@ const ReviewItem = memo(({ review, products, getHrefWithCity }: {
         <li className="flex flex-col gap-[6px] min-h-[120px] flex-shrink-0" tabIndex={0} aria-label={`Отзыв от ${review.customer_name}, рейтинг ${review.rating} звезд`}>
             <div className="flex items-center gap-[6px]">
                 <div className="bg-gray-400 text-white flex uppercase justify-center items-center rounded-full overflow-hidden min-w-[35px] h-[35px] relative" aria-hidden="true">
-                    {review.images === "" ? review.customer_name[0] : null}
+                    {!review.images || review.images === "" ? review.customer_name[0] : null}
                     {
-                        review.images ? (
-                            <Image src={`${API_BASE_URL}/uploads/reviews/${review.images}`} alt={String(review.id)} fill className="object-cover" />
-                        ) : ""
+                        review.images && review.images !== '' ? (
+                            <Image 
+                                src={`${API_BASE_URL}/uploads/reviews/${review.images}`} 
+                                alt={`Аватар ${review.customer_name}`} 
+                                fill 
+                                className="object-cover" 
+                                sizes="35px"
+                            />
+                        ) : null
                     }
                 </div>
                 <div className="flex flex-col">
@@ -69,6 +218,8 @@ const ReviewItem = memo(({ review, products, getHrefWithCity }: {
                 </Link>
             )}
             <p className="text-[14px] font-semibold">{review.description}</p>
+            {/* Отображаем прикрепленные фотографии */}
+            <AttachedPhotos photos={review.attached_photos} view={view} />
         </li>
     );
 });
@@ -217,6 +368,7 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
                         <ReviewItem 
                             key={review.id || index} 
                             review={review} 
+                            view={view}
                             products={products || undefined}
                             getHrefWithCity={getHrefWithCity}
                         />
@@ -241,6 +393,7 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
                         <ReviewItem 
                             key={`${review.id}-${index}`} 
                             review={review} 
+                            view={view}
                             products={products || undefined}
                             getHrefWithCity={getHrefWithCity}
                         />
