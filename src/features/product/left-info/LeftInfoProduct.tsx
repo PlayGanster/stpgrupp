@@ -299,7 +299,7 @@ const LeftInfoProduct = () => {
                     <>
                         {renderNull(product?.description)}
                         {processedDescription && (
-                            <div className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] leading-[1.2]">
+                            <div className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] leading-[1.2] description-good">
                                 <SafeHTML 
                                     html={processedDescription} 
                                     className="rich-text-content"

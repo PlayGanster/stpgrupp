@@ -24,6 +24,8 @@ interface CatalogListType {
 interface DatabaseFilter {
   id: number;
   name: string;
+  category_ids: string; // ID категорий через запятую
+  is_visible: number;   // 1 - видимый, 0 - скрытый
   values: FilterValue[];
 }
 
@@ -37,6 +39,8 @@ interface FilterValue {
 
 interface UIFilter {
   name: string;
+  category_ids: string;
+  is_visible: number;
   values: string[];
   selected: string[];
   isExpanded: boolean;
@@ -254,10 +258,15 @@ const CatalogList: React.FC<CatalogListType> = ({
         return searchParams.get('query_search') || '';
     }, [searchParams, isCatalogPage]);
 
-    // Получаем текущую категорию для SEO
+    // Получаем текущую категорию для SEO и фильтрации
     const currentCategory = useMemo(() => {
         return data.categories.find(el => el.slug === category_slug);
     }, [data.categories, category_slug]);
+
+    // Получаем ID текущей категории
+    const currentCategoryId = useMemo(() => {
+        return currentCategory?.id;
+    }, [currentCategory]);
 
     // Функция для формирования ссылки с учетом города
     const getHrefWithCity = (href: string) => {
@@ -320,7 +329,7 @@ const CatalogList: React.FC<CatalogListType> = ({
     }, [pathname, isMounted]);
 
     // Функция для загрузки фильтров из базы данных
-    const loadDatabaseFilters = useCallback(async (): Promise<DatabaseFilter[]> => {
+    const loadDatabaseFilters = useCallback(async (): Promise<any> => {
         try {
             const { getFiltersWithValues } = await import('@/actions/filters');
             return await getFiltersWithValues();
@@ -330,8 +339,31 @@ const CatalogList: React.FC<CatalogListType> = ({
         }
     }, []);
 
+    // Функция для фильтрации фильтров по категории
+    const filterFiltersByCategory = useCallback((filters: DatabaseFilter[], categoryId?: number): DatabaseFilter[] => {
+        return filters.filter(filter => {
+            // Если фильтр не видимый - скрываем
+            if (filter.is_visible !== 1) return false;
+            
+            // Если есть категория (страница категории)
+            if (categoryId) {
+                // Если у фильтра нет привязанных категорий - НЕ показываем на странице категории
+                if (!filter.category_ids || filter.category_ids.trim() === '') {
+                    return false;
+                }
+                
+                // Если фильтр привязан к этой категории - показываем
+                const categoryIds = filter.category_ids.split(',').map(id => parseInt(id.trim()));
+                return categoryIds.includes(categoryId);
+            }
+            
+            // Если нет категории (общий каталог) - показываем только фильтры без привязки
+            return !filter.category_ids || filter.category_ids.trim() === '';
+        });
+    }, []);
+
     // Функция для применения фильтров к продуктам
-    const applyFiltersToProducts = useCallback((productsList: Product[] , currentFilters: UIFilter[], databaseFilters: DatabaseFilter[]) => {
+    const applyFiltersToProducts = useCallback((productsList: Product[], currentFilters: UIFilter[], databaseFilters: DatabaseFilter[]) => {
         const activeFilters = currentFilters.filter(filter => filter.selected.length > 0);
         
         if (activeFilters.length === 0) {
@@ -370,6 +402,37 @@ const CatalogList: React.FC<CatalogListType> = ({
             (product.description && product.description.toLowerCase().includes(lowerQuery))
         );
     }, [isCatalogPage]);
+
+    // ФУНКЦИЯ ДЛЯ СОРТИРОВКИ ТОВАРОВ ПО sort_order
+    const sortProductsByOrder = useCallback((productsList: any): Product[] => {
+        // Сортируем только если all=true (показываем все товары)
+        if (!all) return productsList;
+        
+        return [...productsList].sort((a, b) => {
+            // Если у товаров есть sort_order, сортируем по нему
+            const orderA = a.sort_order !== undefined ? a.sort_order : 9999;
+            const orderB = b.sort_order !== undefined ? b.sort_order : 9999;
+            
+            return orderA - orderB;
+        });
+    }, [all]);
+
+    // ФУНКЦИЯ ДЛЯ ФИЛЬТРАЦИИ ТОВАРОВ ДЛЯ ГЛАВНОЙ СТРАНИЦЫ (all=false)
+    const getFeaturedProducts = useCallback((productsList: any): Product[] => {
+        // Если all=false (главная страница), показываем только избранные товары
+        if (!all) {
+            // Фильтруем товары с is_featured = 1 и ограничиваем до 7
+            const featured = productsList
+                .filter((product: any) => product.is_featured === 1)
+                .slice(0, 7);
+            
+            console.log('Featured products for main page:', featured.length, featured);
+            return featured;
+        }
+        
+        // Если all=true, возвращаем все товары
+        return productsList;
+    }, [all]);
 
     // ОСНОВНАЯ ФУНКЦИЯ ДЛЯ ЗАГРУЗКИ ДАННЫХ
     const fetchData = useCallback(async () => {
@@ -410,9 +473,20 @@ const CatalogList: React.FC<CatalogListType> = ({
                 }
             }
 
+            // ФИЛЬТРУЕМ ТОВАРЫ ДЛЯ ГЛАВНОЙ СТРАНИЦЫ (all=false)
+            productsToSet = getFeaturedProducts(productsToSet);
+
+            // СОРТИРУЕМ ТОВАРЫ ПО sort_order ЕСЛИ all=true
+            productsToSet = sortProductsByOrder(productsToSet);
+
+            // Фильтруем фильтры по текущей категории
+            const filteredDatabaseFilters = filterFiltersByCategory(filtersData, currentCategoryId);
+
             // Преобразуем фильтры в UI формат
-            const uiFiltersData: UIFilter[] = filtersData.map(filter => ({
+            const uiFiltersData: UIFilter[] = filteredDatabaseFilters.map(filter => ({
                 name: filter.name,
+                category_ids: filter.category_ids,
+                is_visible: filter.is_visible,
                 values: Array.from(new Set(filter.values.map(v => v.value))).sort(),
                 selected: [],
                 isExpanded: false,
@@ -426,8 +500,8 @@ const CatalogList: React.FC<CatalogListType> = ({
                 filteredProducts = filterProductsBySearch(filteredProducts, searchQuery);
             }
             
-            if (isCatalogPage && filtersData.length > 0) {
-                filteredProducts = applyFiltersToProducts(filteredProducts, uiFiltersData, filtersData);
+            if (isCatalogPage && filteredDatabaseFilters.length > 0) {
+                filteredProducts = applyFiltersToProducts(filteredProducts, uiFiltersData, filteredDatabaseFilters);
             }
 
             // ОДНОВРЕМЕННО УСТАНАВЛИВАЕМ ВСЕ ДАННЫЕ
@@ -435,7 +509,7 @@ const CatalogList: React.FC<CatalogListType> = ({
                 categories: categoriesWithCounts,
                 products: productsToSet,
                 filteredProducts,
-                databaseFilters: filtersData,
+                databaseFilters: filteredDatabaseFilters,
                 uiFilters: uiFiltersData,
                 appliedFilters: uiFiltersData
             });
@@ -446,12 +520,47 @@ const CatalogList: React.FC<CatalogListType> = ({
         } finally {
             setLoading(false);
         }
-    }, [category_slug, searchQuery, isCatalogPage, loadDatabaseFilters, filterProductsBySearch, applyFiltersToProducts]);
+    }, [
+        category_slug, 
+        searchQuery, 
+        isCatalogPage, 
+        loadDatabaseFilters, 
+        filterFiltersByCategory,
+        currentCategoryId,
+        filterProductsBySearch, 
+        applyFiltersToProducts,
+        sortProductsByOrder,
+        getFeaturedProducts // Добавляем зависимость
+    ]);
 
     // ОСНОВНОЙ EFFECT ДЛЯ ЗАГРУЗКИ ДАННЫХ
     useEffect(() => {
         fetchData();
     }, [fetchData]);
+
+    // EFFECT ДЛЯ ПРИМЕНЕНИЯ ФИЛЬТРОВ ПРИ ИЗМЕНЕНИИ КАТЕГОРИИ
+    useEffect(() => {
+        if (data.databaseFilters.length > 0) {
+            const filteredDatabaseFilters = filterFiltersByCategory(data.databaseFilters, currentCategoryId);
+            
+            const uiFiltersData: UIFilter[] = filteredDatabaseFilters.map(filter => ({
+                name: filter.name,
+                category_ids: filter.category_ids,
+                is_visible: filter.is_visible,
+                values: Array.from(new Set(filter.values.map(v => v.value))).sort(),
+                selected: [],
+                isExpanded: false,
+                showAll: false
+            }));
+
+            setData(prev => ({
+                ...prev,
+                databaseFilters: filteredDatabaseFilters,
+                uiFilters: uiFiltersData,
+                appliedFilters: uiFiltersData
+            }));
+        }
+    }, [currentCategoryId, filterFiltersByCategory]);
 
     // EFFECT ДЛЯ ПРИМЕНЕНИЯ ФИЛЬТРОВ ПРИ ИХ ИЗМЕНЕНИИ
     useEffect(() => {
@@ -466,12 +575,15 @@ const CatalogList: React.FC<CatalogListType> = ({
                 result = applyFiltersToProducts(result, data.appliedFilters, data.databaseFilters);
             }
             
+            // СОРТИРУЕМ ОТФИЛЬТРОВАННЫЕ ТОВАРЫ
+            result = sortProductsByOrder(result);
+            
             setData(prev => ({
                 ...prev,
                 filteredProducts: result
             }));
         }
-    }, [searchQuery, data.appliedFilters, data.databaseFilters, data.products]);
+    }, [searchQuery, data.appliedFilters, data.databaseFilters, data.products, sortProductsByOrder]);
 
     useEffect(() => {
         setShowFilters(isCatalogPage && data.uiFilters.length > 0);
@@ -765,54 +877,72 @@ const CatalogList: React.FC<CatalogListType> = ({
 
     // Рендер фильтров для десктопа
     const renderDesktopFilters = useMemo(() => {
-        if (!showFilters) return null;
+        // Всегда показываем форму консультации, даже если нет фильтров
+        const hasFilters = showFilters && data.uiFilters.length > 0;
+
+        if(!all) return null;
 
         if (loading) {
-            return <FilterSkeleton />;
+            return (
+                <div className="w-full lg:block hidden mt-[12px] lg:w-64 space-y-6">
+                    {/* Блок фильтров */}
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <FilterSkeleton />
+                    </div>
+                    {/* Форма консультации */}
+                    <ConsultationForm />
+                </div>
+            );
         }
 
         return (
             <div className="w-full lg:block hidden mt-[12px] lg:w-64 space-y-6">
-                {/* Блок фильтров */}
-                <div className="bg-white rounded-lg p-4 border border-gray-200">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="font-semibold text-lg">Фильтры</h3>
-                        {activeFiltersCount > 0 && (
-                            <button 
-                                onClick={resetFilters}
-                                className="text-sm text-blue-600 hover:text-blue-800"
-                            >
-                                Сбросить
-                            </button>
-                        )}
-                    </div>
-                    
-                    <div className="space-y-4">
-                        {visibleFilters.map((filter) => (
-                            <FilterItem key={filter.name} filter={filter} />
-                        ))}
+                {/* Блок фильтров - показываем только если есть фильтры */}
+                {hasFilters ? (
+                    <div className="bg-white rounded-lg p-4 border border-gray-200">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="font-semibold text-lg">Фильтры</h3>
+                            {activeFiltersCount > 0 && (
+                                <button 
+                                    onClick={resetFilters}
+                                    className="text-sm text-blue-600 hover:text-blue-800"
+                                >
+                                    Сбросить
+                                </button>
+                            )}
+                        </div>
                         
-                        {hasMoreFilters && (
-                            <button
-                                onClick={() => setShowFiltersModal(true)}
-                                className="w-full py-2 text-center text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm"
-                            >
-                                Еще {hiddenFiltersCount} фильтр{hiddenFiltersCount > 1 ? 'а' : ''}
-                            </button>
-                        )}
-                        
-                        {data.uiFilters.some(f => f.selected.length > 0) && (
-                            <button
-                                onClick={applyFilters}
-                                className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                            >
-                                Применить ({data.uiFilters.reduce((acc, f) => acc + f.selected.length, 0)})
-                            </button>
-                        )}
+                        <div className="space-y-4">
+                            {visibleFilters.map((filter) => (
+                                <FilterItem key={filter.name} filter={filter} />
+                            ))}
+                            
+                            {hasMoreFilters && (
+                                <button
+                                    onClick={() => setShowFiltersModal(true)}
+                                    className="w-full py-2 text-center text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm"
+                                >
+                                    Еще {hiddenFiltersCount} фильтр{hiddenFiltersCount > 1 ? 'а' : ''}
+                                </button>
+                            )}
+                            
+                            {data.uiFilters.some(f => f.selected.length > 0) && (
+                                <button
+                                    onClick={applyFilters}
+                                    className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                >
+                                    Применить ({data.uiFilters.reduce((acc, f) => acc + f.selected.length, 0)})
+                                </button>
+                            )}
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="border-1 bg-[#F2F1F0] border-gray-200 p-[12px] lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] rounded-[8px] font-semibold">
+                        Нет фильтров
+                    </div>
+                )}
 
-                {/* Форма консультации */}
+                {/* Форма консультации - показываем ВСЕГДА */}
                 <ConsultationForm />
             </div>
         );
@@ -827,6 +957,30 @@ const CatalogList: React.FC<CatalogListType> = ({
         applyFilters, 
         data.uiFilters
     ]);
+
+    // Также обновляем кнопку фильтров для мобильных
+    const renderMobileFiltersButton = useMemo(() => {
+        // Показываем кнопку только если есть фильтры
+        const hasFilters = showFilters && data.uiFilters.length > 0;
+        
+        if (!hasFilters) return null;
+        
+        return (
+            <div className="lg:hidden mb-4">
+                <button
+                    onClick={() => setShowFiltersModal(true)}
+                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm font-medium lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)]"
+                >
+                    <span>Фильтры</span>
+                    {activeFiltersCount > 0 && (
+                        <span className="bg-white text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs">
+                            {activeFiltersCount}
+                        </span>
+                    )}
+                </button>
+            </div>
+        );
+    }, [showFilters, data.uiFilters.length, activeFiltersCount]);
 
     // Рендер модального окна с фильтрами
     const renderFiltersModal = useMemo(() => {
@@ -939,15 +1093,25 @@ const CatalogList: React.FC<CatalogListType> = ({
             return (
                 <div className="col-span-full text-center py-8">
                     <p className="text-[length:var(--size-mobile-large-text)] font-black md:text-[length:var(--size-md-large-text)] lg:text-[length:var(--size-lg-large-text)]">
-                        Не найдено техники
+                        {all ? "Не найдено техники" : "Нет избранных товаров для главной страницы"}
                     </p>
+                    {!all && (
+                        <p className="text-gray-600 mt-2">
+                            Выберите товары для главной страницы в панели администратора
+                        </p>
+                    )}
                 </div>
             );
         }
 
         // Ограничиваем количество товаров для не-каталога
         const isCatalogRouteForLimit = pathname.includes("/catalog");
-        const productsToShow = all ? productsToRender : productsToRender.slice(0, (isCatalogRouteForLimit ? (window.innerWidth >= 600 ? 6 : 3) : (window.innerWidth >= 600 ? 7 : 3)));
+        
+        // Для главной страницы (all=false) показываем все избранные товары (до 7)
+        // Для каталога (all=true) ограничиваем количество
+        const productsToShow = all 
+            ? productsToRender.slice(0, (isCatalogRouteForLimit ? (window.innerWidth >= 600 ? 6 : 3) : (window.innerWidth >= 600 ? 7 : 3)))
+            : productsToRender; // Для главной показываем все избранные товары
 
         return (
             <>
@@ -1089,58 +1253,43 @@ const CatalogList: React.FC<CatalogListType> = ({
                     />
                 )}
             </Head>
+        
+        {renderSearchHeader}
+        
+        <div ref={containerRef} className="w-full">
+            {shouldShowCategories && (
+                <nav aria-label="Категории товаров">
+                    <div className="w-full flex flex-wrap gap-[10px] mt-[16px] mb-[20px]">
+                        {renderCategory}
+                    </div>
+                </nav>
+            )}
             
-            {renderSearchHeader}
-            
-            <div ref={containerRef} className="w-full">
-                {shouldShowCategories && (
-                    <nav aria-label="Категории товаров">
-                        <div className="w-full flex flex-wrap gap-[10px] mt-[16px] mb-[20px]">
-                            {renderCategory}
-                        </div>
-                    </nav>
-                )}
-                
-                <div className="flex flex-col lg:flex-row lg:items-start">
-                    {renderDesktopFilters && (
-                        <div className="lg:mr-6">
-                            {renderDesktopFilters}
-                        </div>
-                    )}
-                    
-                    {renderFiltersModal}
-                    
-                    <section 
-                        aria-label={searchQuery ? `Результаты поиска: ${searchQuery}` : "Список товаров"}
-                        className="flex-1 min-w-0"
-                    >
-                        {/* Кнопка фильтров для мобильных - всегда показываем если есть фильтры */}
-                        {showFilters && (
-                            <div className="lg:hidden mb-4">
-                                <button
-                                    onClick={() => setShowFiltersModal(true)}
-                                    className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2 text-sm font-medium lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)]"
-                                >
-                                    <span>Фильтры</span>
-                                    {activeFiltersCount > 0 && (
-                                        <span className="bg-white text-blue-600 rounded-full w-6 h-6 flex items-center justify-center text-xs">
-                                            {activeFiltersCount}
-                                        </span>
-                                    )}
-                                </button>
-                            </div>
-                        )}
-                
-                        {/* Карта с примененными фильтрами */}
-                        {renderFiltersMap}
-                        
-                        {/* Список товаров с отступом */}
-                        <div className={`w-full grid grid-cols-1 sm:grid-cols-2 ${getGridClasses} gap-[20px] ${hasActiveFilters ? 'mt-3' : 'mt-3'}`}>
-                            {renderList}
-                        </div>
-                    </section>
+            <div className="flex flex-col lg:flex-row lg:items-start">
+                {/* Боковая панель с фильтрами и формой - ВСЕГДА показываем */}
+                <div className="lg:mr-6">
+                    {renderDesktopFilters}
                 </div>
+                
+                {renderFiltersModal}
+                
+                <section 
+                    aria-label={searchQuery ? `Результаты поиска: ${searchQuery}` : "Список товаров"}
+                    className="flex-1 min-w-0"
+                >
+                    {/* Кнопка фильтров для мобильных - показываем только если есть фильтры */}
+                    {renderMobileFiltersButton}
+            
+                    {/* Карта с примененными фильтрами */}
+                    {renderFiltersMap}
+                    
+                    {/* Список товаров с отступом */}
+                    <div className={`w-full grid grid-cols-1 sm:grid-cols-2 ${getGridClasses} gap-[20px] ${hasActiveFilters ? 'mt-3' : 'mt-3'}`}>
+                        {renderList}
+                    </div>
+                </section>
             </div>
+        </div>
         </>
     );
 }

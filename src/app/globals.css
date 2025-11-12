@@ -119,6 +119,6 @@ body, html {
   width: 100%;
 }
 
-li {
+.description-good li {
   list-style:disc;
 }
