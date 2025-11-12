@@ -57,23 +57,76 @@ const FiltersMap = ({
   currentCity: string;
   productsCount: number;
 }) => {
-  const getCityCoordinates = (city: string) => {
-    const cityCoordinates: { [key: string]: [number, number] } = {
-      'moscow': [55.7558, 37.6173],
-      'barnaul': [53.347, 83.7795],
-    };
-    
-    return cityCoordinates[city] || [55.7558, 37.6173];
+const getCityCoordinates = (city: string) => {
+  const cityCoordinates: { [key: string]: [number, number] } = {
+    'moscow': [55.7558, 37.6173],
+    'barnaul': [53.347, 83.7795],
+    'spb': [59.9343, 30.3351],
+    'krasnodar': [45.0355, 38.9750],
+    'novosibirsk': [55.0084, 82.9357],
+    'arhangelsk': [64.5401, 40.5433],
+    'astrahan': [46.3497, 48.0408],
+    'ufa': [54.7355, 55.9587],
+    'belgorod': [50.5957, 36.5873],
+    'bryansk': [53.2434, 34.3644],
+    'vladimir': [56.1290, 40.4066],
+    'volgograd': [48.7080, 44.5133],
+    'vologda': [59.2187, 39.8886],
+    'voronezh': [51.6615, 39.2003],
+    'ivanovo': [57.0004, 40.9739],
+    'kaluga': [54.5138, 36.2612],
+    'kemerovo': [55.3547, 86.0878],
+    'kirov': [58.6036, 49.6680],
+    'syktyvkar': [61.6688, 50.8361],
+    'kostroma': [57.7679, 40.9269],
+    'krasnoyarsk': [56.0153, 92.8932],
+    'kurgan': [55.4410, 65.3411],
+    'kursk': [51.7304, 36.1926],
+    'lipeck': [52.6088, 39.5992],
+    'joshkar-ola': [56.6312, 47.8758],
+    'saransk': [54.1874, 45.1839],
+    'murmansk': [68.9707, 33.0750],
+    'n-novgorod': [56.3269, 44.0059],
+    'novorossiysk': [44.7239, 37.7696],
+    'omsk': [54.9893, 73.3682],
+    'orenburg': [51.7677, 55.0979],
+    'orel': [52.9703, 36.0635],
+    'penza': [53.1951, 45.0183],
+    'perm': [58.0105, 56.2502],
+    'rostov-na-donu': [47.2224, 39.7185],
+    'taganrog': [47.2362, 38.8969],
+    'ryazan': [54.6294, 39.7417],
+    'samara': [53.1955, 50.1018],
+    'tolyatti': [53.5078, 49.4204],
+    'saratov': [51.5336, 46.0343],
+    'nizhniy-tagil': [57.9101, 59.9813],
+    'tambov': [52.7212, 41.4522],
+    'naberezhnye-chelny': [55.7436, 52.3959],
+    'tver': [56.8587, 35.9176],
+    'tomsk': [56.4846, 84.9482],
+    'tula': [54.1931, 37.6173],
+    'tyumen': [57.1530, 65.5343],
+    'tobolsk': [58.1981, 68.2655],
+    'izhevsk': [56.8527, 53.2115],
+    'ulyanovsk': [54.3142, 48.4031],
+    'cheboksary': [56.1463, 47.2511],
+    'noviy-urengoy': [66.0833, 76.6333],
+    'surgut': [61.2541, 73.3962],
+    'chelyabinsk': [55.1599, 61.4026],
+    'magnitogorsk': [53.4072, 58.9792],
+    'ekaterinburg': [56.8380, 60.5975],
+    'kazan': [55.7963, 49.1064],
+    'yaroslavl': [57.6261, 39.8845],
   };
+  
+  return cityCoordinates[city] || [55.7558, 37.6173]; // Москва по умолчанию
+};
 
-  const getCityAddress = (city: string) => {
-    const cityNames: { [key: string]: string } = {
-      'moscow': 'Москва',
-      'barnaul': 'Барнаул',
-    };
-    
-    return cityNames[currentCity] || 'Москва';
-  };
+const getCityAddress = (city: string) => {
+  // Используем nominative падеж из CITY_CASES
+  const cityEntry = Object.values(CITY_CASES).find(c => c.domain === city);
+  return cityEntry ? cityEntry.nominative : 'Москва';
+};
 
   const coordinates = getCityCoordinates(currentCity);
   const address = getCityAddress(currentCity);
@@ -91,24 +144,33 @@ const FiltersMap = ({
 };
 
 // Компонент формы консультации
-const ConsultationForm = () => {
+const ConsultationForm = ({ currentCategory }: { currentCategory?: Category }) => {
   const [phone, setPhone] = useState('+7 (')
   const [check, setCheck] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { slug, isCityVersion } = useCity()
 
-    const getCityInPrepositionalCase = () => {
-      if (!isCityVersion || !slug) {
-        return "Москве"
-      }
-      
-      const cityData = CITY_CASES[slug as keyof typeof CITY_CASES]
-      return cityData ? cityData.dative : "Москве"
+  // Определяем текст в зависимости от категории
+  const getEquipmentText = () => {
+    if (currentCategory) {
+      return currentCategory.name.toLowerCase();
+    }
+    return "спецтехнику";
+  }
+
+  const getCityInPrepositionalCase = () => {
+    if (!isCityVersion || !slug) {
+      return "Москве"
     }
     
-    const cityPrepositional = getCityInPrepositionalCase()
+    const cityData = CITY_CASES[slug as keyof typeof CITY_CASES]
+    return cityData ? cityData.dative : "Москве"
+  }
+  
+  const cityPrepositional = getCityInPrepositionalCase()
+  const equipmentText = getEquipmentText();
 
-   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     
     if (!check) {
@@ -136,7 +198,7 @@ const ConsultationForm = () => {
           city: slug || 'moscow',
           cityName: cityPrepositional,
           type: 'consultation',
-          page: "Каталог"
+          page: currentCategory ? `Категория: ${currentCategory.name}` : "Каталог"
         })
       })
 
@@ -162,7 +224,7 @@ const ConsultationForm = () => {
     <div className="w-full lg:w-64 rounded-lg p-4 mt-6 border bg-[#F2F1F0] border-gray-200 self-start lg:block hidden">
       <h3 className="font-semibold text-lg text-center mb-2">Нужна консультация?</h3>
       <p className="text-sm text-center text-gray-600 mb-4">
-        Закажите обратный звонок и наш специалист подберет автокран под Ваши задачи
+        Закажите обратный звонок и наш специалист подберет {equipmentText} под Ваши задачи
         <br />
         <strong>Консультация - БЕСПЛАТНО</strong>
       </p>
@@ -890,7 +952,7 @@ const CatalogList: React.FC<CatalogListType> = ({
                         <FilterSkeleton />
                     </div>
                     {/* Форма консультации */}
-                    <ConsultationForm />
+                      <ConsultationForm currentCategory={currentCategory} />
                 </div>
             );
         }
@@ -943,7 +1005,7 @@ const CatalogList: React.FC<CatalogListType> = ({
                 )}
 
                 {/* Форма консультации - показываем ВСЕГДА */}
-                <ConsultationForm />
+                <ConsultationForm currentCategory={currentCategory} />
             </div>
         );
     }, [
@@ -955,7 +1017,8 @@ const CatalogList: React.FC<CatalogListType> = ({
         activeFiltersCount, 
         resetFilters, 
         applyFilters, 
-        data.uiFilters
+        data.uiFilters,
+        currentCategory
     ]);
 
     // Также обновляем кнопку фильтров для мобильных
