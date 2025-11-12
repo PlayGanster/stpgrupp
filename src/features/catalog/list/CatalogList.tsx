@@ -946,66 +946,70 @@ const CatalogList: React.FC<CatalogListType> = ({
 
         if (loading) {
             return (
-                <div className="w-full lg:block hidden mt-[12px] lg:w-64 space-y-6">
-                    {/* Блок фильтров */}
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                        <FilterSkeleton />
+                <div className="lg:mr-6">
+                    <div className="w-full lg:block hidden mt-[12px] lg:w-64 space-y-6">
+                        {/* Блок фильтров */}
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <FilterSkeleton />
+                        </div>
+                        {/* Форма консультации */}
+                        <ConsultationForm currentCategory={currentCategory} />
                     </div>
-                    {/* Форма консультации */}
-                      <ConsultationForm currentCategory={currentCategory} />
                 </div>
             );
         }
 
         return (
-            <div className="w-full lg:block hidden mt-[12px] lg:w-64 space-y-6">
-                {/* Блок фильтров - показываем только если есть фильтры */}
-                {hasFilters ? (
-                    <div className="bg-white rounded-lg p-4 border border-gray-200">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="font-semibold text-lg">Фильтры</h3>
-                            {activeFiltersCount > 0 && (
-                                <button 
-                                    onClick={resetFilters}
-                                    className="text-sm text-blue-600 hover:text-blue-800"
-                                >
-                                    Сбросить
-                                </button>
-                            )}
-                        </div>
-                        
-                        <div className="space-y-4">
-                            {visibleFilters.map((filter) => (
-                                <FilterItem key={filter.name} filter={filter} />
-                            ))}
+            <div className="lg:mr-6">
+                <div className="w-full lg:block hidden mt-[12px] lg:w-64 space-y-6">
+                    {/* Блок фильтров - показываем только если есть фильтры */}
+                    {hasFilters ? (
+                        <div className="bg-white rounded-lg p-4 border border-gray-200">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-semibold text-lg">Фильтры</h3>
+                                {activeFiltersCount > 0 && (
+                                    <button 
+                                        onClick={resetFilters}
+                                        className="text-sm text-blue-600 hover:text-blue-800"
+                                    >
+                                        Сбросить
+                                    </button>
+                                )}
+                            </div>
                             
-                            {hasMoreFilters && (
-                                <button
-                                    onClick={() => setShowFiltersModal(true)}
-                                    className="w-full py-2 text-center text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm"
-                                >
-                                    Еще {hiddenFiltersCount} фильтр{hiddenFiltersCount > 1 ? 'а' : ''}
-                                </button>
-                            )}
-                            
-                            {data.uiFilters.some(f => f.selected.length > 0) && (
-                                <button
-                                    onClick={applyFilters}
-                                    className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                                >
-                                    Применить ({data.uiFilters.reduce((acc, f) => acc + f.selected.length, 0)})
-                                </button>
-                            )}
+                            <div className="space-y-4">
+                                {visibleFilters.map((filter) => (
+                                    <FilterItem key={filter.name} filter={filter} />
+                                ))}
+                                
+                                {hasMoreFilters && (
+                                    <button
+                                        onClick={() => setShowFiltersModal(true)}
+                                        className="w-full py-2 text-center text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm"
+                                    >
+                                        Еще {hiddenFiltersCount} фильтр{hiddenFiltersCount > 1 ? 'а' : ''}
+                                    </button>
+                                )}
+                                
+                                {data.uiFilters.some(f => f.selected.length > 0) && (
+                                    <button
+                                        onClick={applyFilters}
+                                        className="w-full py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                    >
+                                        Применить ({data.uiFilters.reduce((acc, f) => acc + f.selected.length, 0)})
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ) : (
-                    <div className="border-1 bg-[#F2F1F0] border-gray-200 p-[12px] lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] rounded-[8px] font-semibold">
-                        Нет фильтров
-                    </div>
-                )}
+                    ) : (
+                        <div className="border-1 bg-[#F2F1F0] border-gray-200 p-[12px] lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)] rounded-[8px] font-semibold">
+                            Нет фильтров
+                        </div>
+                    )}
 
-                {/* Форма консультации - показываем ВСЕГДА */}
-                <ConsultationForm currentCategory={currentCategory} />
+                    {/* Форма консультации - показываем ВСЕГДА */}
+                    <ConsultationForm currentCategory={currentCategory} />
+                </div>
             </div>
         );
     }, [
@@ -1330,9 +1334,9 @@ const CatalogList: React.FC<CatalogListType> = ({
             
             <div className="flex flex-col lg:flex-row lg:items-start">
                 {/* Боковая панель с фильтрами и формой - ВСЕГДА показываем */}
-                <div className="lg:mr-6">
+                
                     {renderDesktopFilters}
-                </div>
+                
                 
                 {renderFiltersModal}
                 
