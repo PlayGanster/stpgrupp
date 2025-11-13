@@ -1171,13 +1171,11 @@ const CatalogList: React.FC<CatalogListType> = ({
             );
         }
 
-        // Ограничиваем количество товаров для не-каталога
-        const isCatalogRouteForLimit = pathname.includes("/catalog");
-        
+        // ИСПРАВЛЕНИЕ: Убираем ограничение для all=true
         // Для главной страницы (all=false) показываем все избранные товары (до 7)
-        // Для каталога (all=true) ограничиваем количество
+        // Для каталога (all=true) показываем ВСЕ товары без ограничений
         const productsToShow = all 
-            ? productsToRender.slice(0, (isCatalogRouteForLimit ? (window.innerWidth >= 600 ? 6 : 3) : (window.innerWidth >= 600 ? 7 : 3)))
+            ? productsToRender // Показываем все товары для каталога
             : productsToRender; // Для главной показываем все избранные товары
 
         return (
