@@ -233,7 +233,7 @@ const ItemCatalog: React.FC<ItemCatalogType> = ({
                     itemProp="price"
                     content={price.toString()}
                   >
-                    От {price} руб.
+                    От {price}₽ / час
                   </p>
                   <meta itemProp="priceCurrency" content="RUB" />
                   <meta itemProp="availability" content="https://schema.org/InStock" />
