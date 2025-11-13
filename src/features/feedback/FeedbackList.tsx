@@ -106,9 +106,6 @@ const AttachedPhotos = memo(({ photos, view }: { photos: string, view: string | 
                         </div>
                     ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                    Прикрепленные фотографии: {photoArray.length}
-                </p>
             </div>
             {
                 view === "all" ? (
