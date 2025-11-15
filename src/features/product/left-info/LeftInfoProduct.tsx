@@ -31,6 +31,26 @@ const SafeHTML = ({
   );
 };
 
+// Функция для удаления SEO-ключей из текста
+const removeSeoKeys = (text: string): string => {
+  if (!text) return '';
+  
+  // Удаляем все вхождения [|...|] включая содержимое
+  return text.replace(/\[\|.*?\|\]/g, '');
+};
+
+// Функция для извлечения SEO-ключей (для мета-тегов)
+const extractSeoKeys = (text: string): string[] => {
+  if (!text) return [];
+  
+  const matches = text.match(/\[\|(.*?)\|\]/g);
+  if (!matches) return [];
+  
+  return matches.map(match => 
+    match.replace(/\[\|/g, '').replace(/\|\]/g, '').trim()
+  ).filter(Boolean);
+};
+
 // Функция для проверки, содержит ли текст HTML теги
 const containsHTML = (text: string): boolean => {
   return /<[a-z][\s\S]*>/i.test(text);
@@ -40,8 +60,12 @@ const containsHTML = (text: string): boolean => {
 const formatPlainText = (text: string): string => {
   if (!text) return '';
   
+  // Сначала удаляем SEO-ключи
+  const cleanText = removeSeoKeys(text);
+  if (!cleanText.trim()) return '';
+  
   // Заменяем переносы строк на параграфы
-  const paragraphs = text.split('\n').filter(paragraph => paragraph.trim());
+  const paragraphs = cleanText.split('\n').filter(paragraph => paragraph.trim());
   
   if (paragraphs.length === 0) return '';
   
@@ -51,6 +75,10 @@ const formatPlainText = (text: string): string => {
 
 // Функция для очистки и валидации HTML
 const sanitizeHTML = (html: string): string => {
+  // Сначала удаляем SEO-ключи
+  const withoutSeoKeys = removeSeoKeys(html);
+  if (!withoutSeoKeys.trim()) return '';
+  
   // Разрешаем безопасные HTML теги
   const allowedTags = [
     'p', 'br', 'strong', 'em', 'u', 's', 'b', 'i',
@@ -59,7 +87,7 @@ const sanitizeHTML = (html: string): string => {
   ];
   
   // Удаляем опасные теги и атрибуты, оставляя только разрешенные
-  const cleanHTML = html.replace(/<(\/?)(\w+)([^>]*)>/gi, (match, slash, tag, attributes) => {
+  const cleanHTML = withoutSeoKeys.replace(/<(\/?)(\w+)([^>]*)>/gi, (match, slash, tag, attributes) => {
     const lowerTag = tag.toLowerCase();
     
     if (allowedTags.includes(lowerTag)) {
@@ -86,6 +114,12 @@ const LeftInfoProduct = () => {
     const { slug, isCityVersion } = useCity();
     const params = useParams();
     const product_id = params.id as string;
+
+    // Извлеченные SEO-ключи для потенциального использования в мета-тегах
+    const seoKeywords = useMemo(() => {
+        if (!product?.description) return [];
+        return extractSeoKeys(product.description);
+    }, [product?.description]);
 
     // Функция для переключения избранного
     const handleToggleFavorite = useCallback(() => {
@@ -196,18 +230,18 @@ const LeftInfoProduct = () => {
         return cityData ? cityData.nominative : 'Неизвестный город';
     }, [isCityVersion, slug]);
 
-    // Мемоизированная обработка описания
+    // Мемоизированная обработка описания с удалением SEO-ключей
     const processedDescription = useMemo(() => {
         if (!product?.description) return '';
         
         const description = product.description.trim();
         
-        // Если описание содержит HTML теги, очищаем и используем как есть
+        // Если описание содержит HTML теги, очищаем и удаляем SEO-ключи
         if (containsHTML(description)) {
             return sanitizeHTML(description);
         }
         
-        // Если это обычный текст, форматируем его
+        // Если это обычный текст, удаляем SEO-ключи и форматируем
         return formatPlainText(description);
     }, [product?.description]);
 
@@ -219,6 +253,15 @@ const LeftInfoProduct = () => {
             (a.display_order || 0) - (b.display_order || 0)
         );
     }, [specifications]);
+
+    // Для отладки - можно посмотреть извлеченные ключи
+    useEffect(() => {
+        if (seoKeywords.length > 0) {
+            console.log('Извлеченные SEO-ключи:', seoKeywords);
+            // Здесь можно использовать seoKeywords для мета-тегов
+            // Например, добавить в keywords мета-тег
+        }
+    }, [seoKeywords]);
 
     if (!product && !loading) return null;
 
