@@ -80,7 +80,7 @@ const sanitizeHTML = (html: string): string => {
 const LeftInfoProduct = () => {
     const [loading, setLoading] = useState(true);
     const [product, setProduct] = useState<Product | null>(null);
-    const [specifications, setSpecifications] = useState<Specification[] | null>(null);
+    const [specifications, setSpecifications] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
     const [favoriteState, setFavoriteState] = useState(false);
     const { slug, isCityVersion } = useCity();
@@ -126,7 +126,15 @@ const LeftInfoProduct = () => {
                     : null
             ]);
 
-            setSpecifications(specificationData.status === 'fulfilled' ? specificationData.value : null);
+            // Сортируем характеристики по display_order
+            if (specificationData.status === 'fulfilled' && specificationData.value) {
+                const sortedSpecs = [...specificationData.value].sort((a: any, b: any) => 
+                    (a.display_order || 0) - (b.display_order || 0)
+                );
+                setSpecifications(sortedSpecs);
+            } else {
+                setSpecifications(null);
+            }
 
             if (cachedProductData.status === 'fulfilled' && cachedProductData.value) {
                 setProduct(cachedProductData.value);
@@ -157,6 +165,7 @@ const LeftInfoProduct = () => {
         fetchData();
     }, [fetchData]);
 
+    // Мемоизированная функция для отображения пустого состояния
     const renderNull = useCallback((item: any) => {
         if (!item || item.length === 0) {
             return (
@@ -168,6 +177,7 @@ const LeftInfoProduct = () => {
         return null;
     }, []);
 
+    // Мемоизированный скелетон загрузки
     const SkeletonLoader = useMemo(() => ({ 
         width, height, className = "" 
     }: { 
@@ -179,6 +189,7 @@ const LeftInfoProduct = () => {
         />
     ), []);
 
+    // Мемоизированная функция для получения названия города
     const getCityName = useCallback(() => {
         if (!isCityVersion) return 'Вся Россия';
         const cityData = CITY_CASES[slug as keyof typeof CITY_CASES];
@@ -199,6 +210,15 @@ const LeftInfoProduct = () => {
         // Если это обычный текст, форматируем его
         return formatPlainText(description);
     }, [product?.description]);
+
+    // Мемоизированный список характеристик, отсортированный по display_order
+    const sortedSpecifications = useMemo(() => {
+        if (!specifications) return [];
+        
+        return [...specifications].sort((a, b) => 
+            (a.display_order || 0) - (b.display_order || 0)
+        );
+    }, [specifications]);
 
     if (!product && !loading) return null;
 
@@ -273,13 +293,15 @@ const LeftInfoProduct = () => {
                     <SkeletonLoader height="100px" />
                 ) : (
                     <>
-                        {renderNull(specifications)}
-                        {specifications && specifications.length > 0 && (
+                        {renderNull(sortedSpecifications)}
+                        {sortedSpecifications.length > 0 && (
                             <ul className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] leading-[1.2]">
-                                {specifications.map((el, index) => (
-                                    <li key={index} className="flex gap-[4px] mb-[6px] items-baseline">
-                                        <p className="whitespace-nowrap">{el.name}:</p>
-                                        <p className="text-[var(--grey-text-color)] whitespace-nowrap overflow-hidden text-ellipsis">{el.value}</p>
+                                {sortedSpecifications.map((el, index) => (
+                                    <li key={el.id} className="flex gap-[4px] mb-[6px] items-baseline">
+                                        <p className="whitespace-nowrap font-medium">{el.name}:</p>
+                                        <p className="text-[var(--grey-text-color)] whitespace-nowrap overflow-hidden text-ellipsis">
+                                            {el.value}
+                                        </p>
                                     </li>
                                 ))}
                             </ul>
