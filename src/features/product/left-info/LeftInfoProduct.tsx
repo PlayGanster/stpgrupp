@@ -502,3 +502,5 @@ const LeftInfoProduct = () => {
         </div>
     );
 };
+
+export default LeftInfoProduct

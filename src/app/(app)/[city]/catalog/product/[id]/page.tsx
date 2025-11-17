@@ -1,4 +1,3 @@
-import LeftInfoProduct from "@/features/product/left-info/LeftInfoProduct";
 import TopBlockProduct from "@/features/product/top-block/TopBlockProduct";
 import RightItem from "@/features/product/right-item/rightItem";
 import { Metadata } from "next";
@@ -11,6 +10,7 @@ import {
   getSeoCityTitle,
   getSeoCityDescription,
 } from '@/shared/utils/cityCases';
+import LeftInfoProduct from "@/features/product/left-info/LeftInfoProduct";
 
 interface PageProps {
   params: { 
