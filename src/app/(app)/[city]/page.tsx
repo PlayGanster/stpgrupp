@@ -190,7 +190,7 @@ export default function Home({ params }: { params: { city?: string } }) {
             <div className="w-full md:w-[50%] lg:w-[50%] px-[30px] py-[30px] bg-[#F2F1EF] rounded-[40px]">
               <ContactForm page="Главная" />
             </div>
-            <div className="w-full md:w-[50%] lg:w-[50%] max-h-[405px] overflow-hidden relative">
+            <div className="w-full md:w-[50%] lg:w-[50%] max-h-[435px] overflow-hidden relative">
               <FeedbackList view={6} />
             </div>
           </section>
