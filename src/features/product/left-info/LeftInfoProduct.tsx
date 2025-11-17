@@ -112,7 +112,11 @@ const replaceCityPlaceholders = (text: string, cityData: any): string => {
   return text
     .replace(/\[city\]/g, cityData.nominative)
     .replace(/\[city-dative\]/g, cityData.dative)
-    .replace(/\[city-prepositional\]/g, cityData.prepositional);
+    .replace(/\[city-prepositional\]/g, cityData.prepositional)
+    .replace(/\[city-accusative\]/g, cityData.accusative)
+    .replace(/\[city-instrumental\]/g, cityData.instrumental)
+    .replace(/\[city-genitive\]/g, cityData.genitive)
+    .replace(/\[city-nominative\]/g, cityData.nominative);
 };
 
 const LeftInfoProduct = () => {
