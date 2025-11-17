@@ -20,6 +20,7 @@ import {
   getSeoCityTitle,
   getSeoCityDescription 
 } from '@/shared/utils/cityCases';
+import Link from "next/link";
 
 // Генерируем метаданные с учетом города
 export async function generateMetadata({ params }: { params: { city?: string } }) {
@@ -186,10 +187,10 @@ export default function Home({ params }: { params: { city?: string } }) {
 
           {/* Секция с формой обратной связи */}
           <section aria-label="Контактная форма" className="w-full gap-[20px] lg:gap-[70px] md:flex-row flex-col flex items-start mt-[20px]">
-            <div className="w-full md:w-[60%] lg:w-[65%] px-[30px] py-[30px] bg-[#F2F1EF] rounded-[40px]">
+            <div className="w-full md:w-[50%] lg:w-[50%] px-[30px] py-[30px] bg-[#F2F1EF] rounded-[40px]">
               <ContactForm page="Главная" />
             </div>
-            <div className="w-full md:w-[40%] lg:w-[35%] max-h-[485px] overflow-hidden relative">
+            <div className="w-full md:w-[50%] lg:w-[50%] max-h-[405px] overflow-hidden relative">
               <FeedbackList view={6} />
             </div>
           </section>
@@ -202,7 +203,14 @@ export default function Home({ params }: { params: { city?: string } }) {
 
           {/* Секция "Каталог" */}
           <section aria-label="Каталог техники" className="w-full mt-[20px]">
-            <h2 className="font-black lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)]">Каталог техники {cityPrepositional}</h2>
+            <Link 
+              href={citySlug !== DEFAULT_CITY ? `/${citySlug}/catalog` : '/moscow/catalog'}
+              className="block"
+            >
+              <h2 className="font-black lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)] hover:text-[var(--href-hover-color)] transition-colors cursor-pointer">
+                Каталог техники {cityPrepositional}
+              </h2>
+            </Link>
             <CatalogList all={false} />
           </section>
 

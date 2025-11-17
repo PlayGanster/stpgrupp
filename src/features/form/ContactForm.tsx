@@ -9,7 +9,7 @@ import { CITY_CASES } from '@/config/cities'
 
 // Мемоизированные статичные компоненты с семантикой
 const Heading = memo(() => (
-  <h2 className="lg:text-[length:var(--size-lg-heading-text)] md:text-[length:var(--size-md-heading-text)] text-[length:var(--size-mobile-heading-text)] font-black leading-[1.2]">
+  <h2 className="lg:text-[length:var(--size-lg-large-text)] md:text-[length:var(--size-md-large-text)] text-[length:var(--size-mobile-large-text)] font-black leading-[1.2]">
     Оставьте заявку<br/>
     на бесплатную консультацию
   </h2>
@@ -17,7 +17,7 @@ const Heading = memo(() => (
 Heading.displayName = "Heading"
 
 const Subheading = memo(() => (
-  <p className="mt-[12px] lg:text-[length:var(--size-lg-default-text)] md:text-[length:var(--size-md-default-text)] text-[length:var(--size-mobile-default-text)]" id="contact-form-subheading">
+  <p className="mt-[12px] lg:text-[length:var(--size-lg-small-text)] md:text-[length:var(--size-md-small-text)] text-[length:var(--size-mobile-small-text)]" id="contact-form-subheading">
     *Мы перезвоним Вам в течение 2 минут
   </p>
 ))
@@ -168,7 +168,7 @@ const ContactForm: React.FC<ContactFormType> = ({
           ref={textareaRef}
           value={pin}
           onChange={handlePinChange}
-          className="px-[15px] placeholder:text-white py-[8px] md:text-[16px] text-[14px] rounded-[12px] bg-white w-full min-h-[150px] text-black outline-none relative z-2 max-h-[200px]"
+          className="px-[15px] placeholder:text-white py-[8px] md:text-[16px] text-[14px] rounded-[12px] bg-white w-full min-h-[90px] text-black outline-none relative z-2 max-h-[200px]"
           placeholder="Ваш комментарий облегчит обработку заявки. Не обязателен к заполнению."
           aria-describedby="comment-placeholder"
           disabled={isLoading}

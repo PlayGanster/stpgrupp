@@ -5,9 +5,9 @@ import QuestionItem from "../../../shared/components/questions/QuestionItem"
 import { getQuestionsList, Question } from "@/actions/questions"
 import { CITY_CASES, CitySlug, DEFAULT_CITY } from '@/config/cities';
 import Button from "@/shared/ui/button/Button";
-import ContactForm from "@/features/form/ContactForm";
 import Modal from "@/shared/ui/modal/Modal";
 import { RxCross2 } from "react-icons/rx";
+import ContactForm from "@/features/form/ContactForm";
 
 interface QuestionsListProps {
     citySlug: CitySlug;
@@ -86,7 +86,7 @@ const QuestionsList = ({ citySlug, preprocessedBaseQuestions }: QuestionsListPro
                     <div className="w-full h-full flex justify-center items-center p-[12px]">
                         <div className="relative max-w-[700px] w-full p-[20px] md:p-[40px] bg-[#F2F1EF] rounded-[20px] md:rounded-[40px]" onClick={(e) => e.stopPropagation()}>
                             <RxCross2 onClick={() => setOpenModal(false)} size={22} className="absolute top-[15px] right-[15px] z-22 cursor-pointer" />
-                            <ContactForm />
+                            <ContactForm page="Вопросы" />
                         </div>
                     </div>
                 </Modal>

@@ -105,6 +105,16 @@ const sanitizeHTML = (html: string): string => {
   return cleanHTML;
 };
 
+// Функция для замены городских плейсхолдеров
+const replaceCityPlaceholders = (text: string, cityData: any): string => {
+  if (!text || !cityData) return text || '';
+  
+  return text
+    .replace(/\[city\]/g, cityData.nominative)
+    .replace(/\[city-dative\]/g, cityData.dative)
+    .replace(/\[city-prepositional\]/g, cityData.prepositional);
+};
+
 const LeftInfoProduct = () => {
     const [loading, setLoading] = useState(true);
     const [product, setProduct] = useState<Product | null>(null);
@@ -115,7 +125,13 @@ const LeftInfoProduct = () => {
     const params = useParams();
     const product_id = params.id as string;
 
-    // Извлеченные SEO-ключи для потенциального использования в мета-тегах
+    // Получаем данные города
+    const cityData = useMemo(() => {
+        if (!isCityVersion) return null;
+        return CITY_CASES[slug as keyof typeof CITY_CASES] || null;
+    }, [isCityVersion, slug]);
+
+    // Извлеченные SEO-ключи для потенциального использования в мета-тегов
     const seoKeywords = useMemo(() => {
         if (!product?.description) return [];
         return extractSeoKeys(product.description);
@@ -230,29 +246,50 @@ const LeftInfoProduct = () => {
         return cityData ? cityData.nominative : 'Неизвестный город';
     }, [isCityVersion, slug]);
 
-    // Мемоизированная обработка описания с удалением SEO-ключей
+    // Мемоизированная обработка описания с удалением SEO-ключей и заменой городских плейсхолдеров
     const processedDescription = useMemo(() => {
         if (!product?.description) return '';
         
         const description = product.description.trim();
         
+        // Сначала заменяем городские плейсхолдеры
+        let processedText = description;
+        if (cityData) {
+            processedText = replaceCityPlaceholders(description, cityData);
+        }
+        
         // Если описание содержит HTML теги, очищаем и удаляем SEO-ключи
-        if (containsHTML(description)) {
-            return sanitizeHTML(description);
+        if (containsHTML(processedText)) {
+            return sanitizeHTML(processedText);
         }
         
         // Если это обычный текст, удаляем SEO-ключи и форматируем
-        return formatPlainText(description);
-    }, [product?.description]);
+        return formatPlainText(processedText);
+    }, [product?.description, cityData]);
 
-    // Мемоизированный список характеристик, отсортированный по display_order
-    const sortedSpecifications = useMemo(() => {
+    // Мемоизированная обработка названия товара с заменой городских плейсхолдеров
+    const processedProductName = useMemo(() => {
+        if (!product?.name) return '';
+        
+        if (cityData) {
+            return replaceCityPlaceholders(product.name, cityData);
+        }
+        
+        return product.name;
+    }, [product?.name, cityData]);
+
+    // Мемоизированная обработка характеристик с заменой городских плейсхолдеров
+    const processedSpecifications = useMemo(() => {
         if (!specifications) return [];
         
-        return [...specifications].sort((a, b) => 
+        return specifications.map((spec: any) => ({
+            ...spec,
+            name: cityData ? replaceCityPlaceholders(spec.name, cityData) : spec.name,
+            value: cityData ? replaceCityPlaceholders(spec.value, cityData) : spec.value
+        })).sort((a: any, b: any) => 
             (a.display_order || 0) - (b.display_order || 0)
         );
-    }, [specifications]);
+    }, [specifications, cityData]);
 
     // Для отладки - можно посмотреть извлеченные ключи
     useEffect(() => {
@@ -274,7 +311,7 @@ const LeftInfoProduct = () => {
                         <SkeletonLoader height="40px" />
                     ) : (
                         <h1 className="text-black text-[length:var(--size-mobile-heading-text)] md:text-[length:var(--size-md-heading-text)] lg:text-[length:var(--size-lg-heading-text)] leading-[1.2] font-black">
-                            {product?.name}
+                            {processedProductName}
                         </h1>
                     )}
                     
@@ -336,10 +373,10 @@ const LeftInfoProduct = () => {
                     <SkeletonLoader height="100px" />
                 ) : (
                     <>
-                        {renderNull(sortedSpecifications)}
-                        {sortedSpecifications.length > 0 && (
+                        {renderNull(processedSpecifications)}
+                        {processedSpecifications.length > 0 && (
                             <ul className="text-[length:var(--size-mobile-default-text)] md:text-[length:var(--size-md-default-text)] lg:text-[length:var(--size-lg-default-text)] leading-[1.2]">
-                                {sortedSpecifications.map((el, index) => (
+                                {processedSpecifications.map((el: any, index: any) => (
                                     <li key={el.id} className="flex gap-[4px] mb-[6px] items-baseline">
                                         <p className="whitespace-nowrap font-medium">{el.name}:</p>
                                         <p className="text-[var(--grey-text-color)] whitespace-nowrap overflow-hidden text-ellipsis">

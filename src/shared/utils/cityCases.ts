@@ -3,7 +3,7 @@ import { CITY_CASES, CitySlug, DEFAULT_CITY } from '@/config/cities';
 // Функция для получения города в предложном падеже (в Москве, в Санкт-Петербурге)
 export function getCityInPrepositionalCase(citySlug: CitySlug): string {
   const city = CITY_CASES[citySlug];
-  return citySlug === DEFAULT_CITY ? 'России' : `в ${city.prepositional.split(' ')[1]}`;
+  return citySlug === DEFAULT_CITY ? 'Москвы' : `в ${city.prepositional.split(' ')[1]}`;
 }
 
 // Функция для получения города в родительном падеже (аренда Москвы)

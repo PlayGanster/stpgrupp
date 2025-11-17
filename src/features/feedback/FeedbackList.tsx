@@ -411,7 +411,7 @@ const FeedbackList: React.FC<FeedbackListType> = memo(({ view, name=true }) => {
         );
     }, [reviews, view, products, getHrefWithCity, animationDuration]);
 
-    const containerHeightClass = !reviews || reviews.length === 0 || location.pathname.includes("catalog") ? "h-auto" : "lg:h-[485px] md:h-[460px]";
+    const containerHeightClass = !reviews || reviews.length === 0 || location.pathname.includes("catalog") ? "h-auto" : "lg:h-[400px] md:h-[405px]";
 
     return (
         <section 
